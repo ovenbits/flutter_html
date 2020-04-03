@@ -71,7 +71,7 @@ const htmlData = """
       </table>
       <h3>Custom Element Support:</h3>
       <flutter></flutter>
-      <flutter horizontal></flutter>
+      <flutter horizontal class='block'></flutter>
       <h3>SVG support:</h3>
       <svg id='svg1' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'>
             <circle r="32" cx="35" cy="65" fill="#F00" opacity="0.5"/>
@@ -127,26 +127,53 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Html(
           data: htmlData,
           //Optional parameters:
-          style: {
-            "html": Style(
-              backgroundColor: Colors.black,
-              color: Colors.white,
-            ),
-            "table": Style(
-              backgroundColor: Color.fromARGB(0x50, 0xee, 0xee, 0xee),
-            ),
-            "tr": Style(
-              border: Border(bottom: BorderSide(color: Colors.grey)),
-            ),
-            "th": Style(
-              padding: EdgeInsets.all(6),
-              backgroundColor: Colors.grey,
-            ),
-            "td": Style(
-              padding: EdgeInsets.all(6),
-            ),
-            "var": Style(fontFamily: 'serif'),
-          },
+//          style: {
+//            "html": Style(
+//              backgroundColor: Colors.black,
+//              color: Colors.white,
+//            ),
+//            "table": Style(
+//              backgroundColor: Color.fromARGB(0x50, 0xee, 0xee, 0xee),
+//            ),
+//            "tr": Style(
+//              border: Border(bottom: BorderSide(color: Colors.grey)),
+//            ),
+//            "th": Style(
+//              padding: EdgeInsets.all(6),
+//              backgroundColor: Colors.grey,
+//            ),
+//            "td": Style(
+//              padding: EdgeInsets.all(6),
+//            ),
+//            "var": Style(fontFamily: 'serif'),
+//          },
+        css: """
+            html {
+              background-color: black;
+              color: white;
+            }
+            table {
+              background-color: #50EEEEEE;
+            }
+            tr {
+              border-bottom: 1px solid grey;
+            }
+            th {
+              padding: 6px;
+              background-color: grey;
+            }
+            var {
+              font-family: serif;
+            }
+            .class {}
+            a[href] {}
+            p {}
+            p.green {}
+            p, a {}
+            p,  a {}
+            p a { color: red }
+            .block { display: block; }
+            """,
           customRender: {
             "flutter": (RenderContext context, Widget child, attributes, _) {
               return FlutterLogo(

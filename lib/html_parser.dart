@@ -11,15 +11,16 @@ import 'package:flutter_html/src/layout_element.dart';
 import 'package:flutter_html/src/utils.dart';
 import 'package:flutter_html/style.dart';
 import 'package:html/dom.dart' as dom;
+import 'package:html/src/query_selector.dart';
 import 'package:html/parser.dart' as htmlparser;
 
 typedef OnTap = void Function(String url);
 typedef CustomRender = Widget Function(
-  RenderContext context,
-  Widget parsedChild,
-  Map<String, String> attributes,
-  dom.Element element,
-);
+    RenderContext context,
+    Widget parsedChild,
+    Map<String, String> attributes,
+    dom.Element element,
+    );
 
 class HtmlParser extends StatelessWidget {
   final String htmlData;
@@ -64,7 +65,10 @@ class HtmlParser extends StatelessWidget {
       RenderContext(
         buildContext: context,
         parser: this,
-        style: Style.fromTextStyle(Theme.of(context).textTheme.body1),
+        style: Style.fromTextStyle(Theme
+            .of(context)
+            .textTheme
+            .body1),
       ),
       cleanedTree,
     );
@@ -83,11 +87,7 @@ class HtmlParser extends StatelessWidget {
   }
 
   /// [lexDomTree] converts a DOM document to a simplified tree of [StyledElement]s.
-  static StyledElement lexDomTree(
-    dom.Document html,
-    List<String> customRenderTags,
-    List<String> blacklistedElements,
-  ) {
+  static StyledElement lexDomTree(dom.Document html, List<String> customRenderTags, List<String> blacklistedElements) {
     StyledElement tree = StyledElement(
       name: "[Tree Root]",
       children: new List<StyledElement>(),
@@ -106,11 +106,9 @@ class HtmlParser extends StatelessWidget {
   ///
   /// It runs the parse functions of every type of
   /// element and returns a [StyledElement] tree representing the element.
-  static StyledElement _recursiveLexer(
-    dom.Node node,
-    List<String> customRenderTags,
-    List<String> blacklistedElements,
-  ) {
+  static StyledElement _recursiveLexer(dom.Node node,
+      List<String> customRenderTags,
+      List<String> blacklistedElements,) {
     List<StyledElement> children = List<StyledElement>();
 
     node.nodes.forEach((childNode) {
@@ -147,14 +145,12 @@ class HtmlParser extends StatelessWidget {
 
   ///TODO document
   static StyledElement applyCSS(StyledElement tree, css.StyleSheet sheet) {
-
-    //TODO
-
     //Make sure style is never null.
     if (tree.style == null) {
       tree.style = Style();
     }
 
+    final declarations = DeclarationVisitor(element: tree).applyDeclarations(sheet);
     tree.children?.forEach((e) => applyCSS(e, sheet));
 
     return tree;
@@ -162,9 +158,10 @@ class HtmlParser extends StatelessWidget {
 
   /// [applyInlineStyle] applies inline styles (i.e. `style="..."`) recursively into the StyledElement tree.
   static StyledElement applyInlineStyles(StyledElement tree) {
-
-    if(tree.attributes.containsKey("style")) {
-      tree.style = tree.style.merge(inlineCSSToStyle(tree.attributes['style']));
+    if (tree.attributes.containsKey("style")) {
+      final inlineStyle = tree.attributes['style'];
+      final sheet = cssparser.parse("*{$inlineStyle}");
+      DeclarationVisitor(element: tree, isInline: true).applyDeclarations(sheet);
     }
 
     tree.children?.forEach(applyInlineStyles);
@@ -241,8 +238,8 @@ class HtmlParser extends StatelessWidget {
               style: tree.style,
               shrinkWrap: context.parser.shrinkWrap,
               children: tree.children
-                      ?.map((tree) => parseTree(newContext, tree))
-                      ?.toList() ??
+                  ?.map((tree) => parseTree(newContext, tree))
+                  ?.toList() ??
                   [],
             ),
             tree.attributes,
@@ -260,8 +257,8 @@ class HtmlParser extends StatelessWidget {
           style: tree.style,
           shrinkWrap: context.parser.shrinkWrap,
           children: tree.children
-                  ?.map((tree) => parseTree(newContext, tree))
-                  ?.toList() ??
+              ?.map((tree) => parseTree(newContext, tree))
+              ?.toList() ??
               [],
         ),
       );
@@ -286,8 +283,8 @@ class HtmlParser extends StatelessWidget {
                 child: StyledText(
                   textSpan: TextSpan(
                     children: tree.children
-                            ?.map((tree) => parseTree(newContext, tree))
-                            ?.toList() ??
+                        ?.map((tree) => parseTree(newContext, tree))
+                        ?.toList() ??
                         [],
                     style: newContext.style.generateTextStyle(),
                   ),
@@ -314,8 +311,8 @@ class HtmlParser extends StatelessWidget {
           gestures: {
             MultipleTapGestureRecognizer: GestureRecognizerFactoryWithHandlers<
                 MultipleTapGestureRecognizer>(
-              () => MultipleTapGestureRecognizer(),
-              (instance) {
+                  () => MultipleTapGestureRecognizer(),
+                  (instance) {
                 instance..onTap = () => onLinkTap?.call(tree.href);
               },
             ),
@@ -324,8 +321,8 @@ class HtmlParser extends StatelessWidget {
             textSpan: TextSpan(
               style: newContext.style.generateTextStyle(),
               children: tree.children
-                      .map((tree) => parseTree(newContext, tree))
-                      .toList() ??
+                  .map((tree) => parseTree(newContext, tree))
+                  .toList() ??
                   [],
             ),
             style: newContext.style,
@@ -357,8 +354,8 @@ class HtmlParser extends StatelessWidget {
             textSpan: TextSpan(
               style: newContext.style.generateTextStyle(),
               children: tree.children
-                      .map((tree) => parseTree(newContext, tree))
-                      .toList() ??
+                  .map((tree) => parseTree(newContext, tree))
+                  .toList() ??
                   [],
             ),
             style: newContext.style,
@@ -370,7 +367,7 @@ class HtmlParser extends StatelessWidget {
       return TextSpan(
         style: newContext.style.generateTextStyle(),
         children:
-            tree.children.map((tree) => parseTree(newContext, tree)).toList(),
+        tree.children.map((tree) => parseTree(newContext, tree)).toList(),
       );
     }
   }
@@ -403,14 +400,12 @@ class HtmlParser extends StatelessWidget {
   /// [_processInlineWhitespaceRecursive] analyzes the whitespace between and among different
   /// inline elements, and replaces any instance of two or more spaces with a single space, according
   /// to the w3's HTML whitespace processing specification linked to above.
-  static StyledElement _processInlineWhitespaceRecursive(
-    StyledElement tree,
-    Context<bool> wpc,
-  ) {
+  static StyledElement _processInlineWhitespaceRecursive(StyledElement tree,
+      Context<bool> wpc,) {
     if (tree.style.display == Display.BLOCK) {
       wpc.data = false;
     }
-    
+
     if (tree is ImageContentElement || tree is SvgContentElement) {
       wpc.data = false;
     }
@@ -459,8 +454,7 @@ class HtmlParser extends StatelessWidget {
 
   /// [_processListCharactersRecursive] uses a Stack of integers to properly number and
   /// bullet all list items according to the [ListStyleType] they have been given.
-  static StyledElement _processListCharactersRecursive(
-      StyledElement tree, ListQueue<Context<int>> olStack) {
+  static StyledElement _processListCharactersRecursive(StyledElement tree, ListQueue<Context<int>> olStack) {
     if (tree.name == 'ol') {
       olStack.add(Context(0));
     } else if (tree.style.display == Display.LIST_ITEM) {
@@ -617,7 +611,9 @@ class HtmlParser extends StatelessWidget {
       } else if (child is TextContentElement &&
           child.style.whiteSpace != WhiteSpace.PRE &&
           tree.style.display == Display.BLOCK &&
-          child.text.trim().isEmpty &&
+          child.text
+              .trim()
+              .isEmpty &&
           lastChildBlock) {
         toRemove.add(child);
       } else {
@@ -722,7 +718,7 @@ class StyledText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: style.display == Display.BLOCK || style.display == Display.LIST_ITEM? double.infinity: null,
+      width: style.display == Display.BLOCK || style.display == Display.LIST_ITEM ? double.infinity : null,
       child: Text.rich(
         textSpan,
         style: style.generateTextStyle(),
