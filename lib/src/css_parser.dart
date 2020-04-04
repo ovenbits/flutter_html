@@ -1,11 +1,10 @@
 import 'dart:ui';
 
-import 'package:csslib/parser.dart' as cssparser;
 import 'package:csslib/visitor.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_html/src/styled_element.dart';
 import 'package:flutter_html/style.dart';
 import 'package:html/src/query_selector.dart';
-import 'package:flutter/widgets.dart';
 
 Map<String, Style> cssToStyles(StyleSheet sheet) {
   sheet.topLevels.forEach((treeNode) {
@@ -56,8 +55,17 @@ class DeclarationVisitor extends Visitor {
   }
 
   @override
+  void visitEmTerm(EmTerm node) {
+    // print('visitEmTerm(${node.text})');
+    switch (_currentProperty) {
+      case 'font-size':
+        element.style.fontSize = FontSize(FontSize.medium.size * double.parse(node.text));
+    }
+  }
+
+  @override
   void visitLiteralTerm(LiteralTerm node) {
-    // print('visitLiteralTerm(${node.span.text})');
+    // print('visitLiteralTerm(${node.text})');
     switch (_currentProperty) {
       case 'direction':
         element.style.direction = ExpressionMapping.expressionToDirection(node);
@@ -65,6 +73,11 @@ class DeclarationVisitor extends Visitor {
       case 'display':
         element.style.display = ExpressionMapping.expressionToDisplay(node);
         break;
+      case 'font-style':
+        element.style.fontStyle = ExpressionMapping.expressionToFontStyle(node);
+        break;
+      case 'font-family':
+        element.style.fontFamily = ExpressionMapping.expressionToFontFamily(node);
     }
   }
 
@@ -84,9 +97,10 @@ class DeclarationVisitor extends Visitor {
   @override
   void visitFontExpression(FontExpression node) {
     // print('visitFontExpression(${node.span.text})');
-    element.style.fontFamily = node.span.text;
+    // element.style.fontFamily = node.font.family?.join(', ');
+    element.style.fontWeight = ExpressionMapping.expressionToFontWeight(node);
   }
-  
+
   @override
   void visitBoxExpression(BoxExpression node) {
     // print('visitBoxExpression(${node.span.text})');
@@ -116,7 +130,7 @@ class DeclarationVisitor extends Visitor {
 
   @override
   void visitWidthExpression(WidthExpression node) {
-    print('visitWidthExpression(${node.span.text})');
+    // print('visitWidthExpression(${node.span.text})');
   }
 }
 
@@ -133,9 +147,9 @@ class ExpressionMapping {
 
   static Color stringToColor(String _text) {
     var text = _text.replaceFirst('#', '');
-    if (text.length == 3)
-      text = text.replaceAllMapped(
-          RegExp(r"[a-f]|\d"), (match) => '${match.group(0)}${match.group(0)}');
+    if (text.length == 3) {
+      text = text.replaceAllMapped(RegExp(r"[a-fA-F]|\d"), (match) => '${match.group(0)}${match.group(0)}');
+    }
     int color = int.parse(text, radix: 16);
 
     if (color <= 0xffffff) {
@@ -210,9 +224,48 @@ class ExpressionMapping {
     }
   }
 
+  static FontStyle expressionToFontStyle(Expression value) {
+    if (value is LiteralTerm) {
+      switch (value.text) {
+        case 'normal':
+          return FontStyle.normal;
+        case 'italic':
+          return FontStyle.italic;
+        case 'oblique':
+          return FontStyle.italic;
+      }
+    }
+  }
+
+  static FontWeight expressionToFontWeight(FontExpression value) {
+    if (value is FontExpression) {
+      switch (value.font.weight) {
+        case 100:
+          return FontWeight.w100;
+        case 200:
+          return FontWeight.w200;
+        case 300:
+          return FontWeight.w300;
+        case 400:
+          return FontWeight.w400;
+        case 500:
+          return FontWeight.w500;
+        case 600:
+          return FontWeight.w600;
+        case 700:
+          return FontWeight.w700;
+        case 800:
+          return FontWeight.w800;
+        case 900:
+          return FontWeight.w900;
+      }
+    }
+  }
+
   static String expressionToFontFamily(Expression value) {
-    if (value is LiteralTerm)
+    if (value is LiteralTerm) {
       return value.text;
+    }
   }
 }
 
