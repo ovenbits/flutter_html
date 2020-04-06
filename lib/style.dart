@@ -95,6 +95,18 @@ class Style {
   /// Default: TextAlign.start,
   TextAlign textAlign;
 
+  /// CSS attribute "`text-indent`"
+  ///
+  /// Inherited: yes,
+  /// Default: 0,
+  double textIndent;
+
+  /// CSS attribute "`text-transform`"
+  ///
+  /// Inherited: yes,
+  /// Default: TextTransform.none,
+  TextTransform textTransform;
+
   /// CSS attribute "`text-decoration`"
   ///
   /// Inherited: no,
@@ -175,6 +187,8 @@ class Style {
     this.padding,
     this.margin,
     this.textAlign,
+    this.textIndent,
+    this.textTransform,
     this.textDecoration,
     this.textDecorationColor,
     this.textDecorationStyle,
@@ -245,6 +259,8 @@ class Style {
       margin: other.margin,
       //TODO merge EdgeInsets
       textAlign: other.textAlign,
+      textIndent: other.textIndent,
+      textTransform: other.textTransform,
       textDecoration: other.textDecoration,
       textDecorationColor: other.textDecorationColor,
       textDecorationStyle: other.textDecorationStyle,
@@ -300,6 +316,8 @@ class Style {
     EdgeInsets padding,
     EdgeInsets margin,
     TextAlign textAlign,
+    double textIndent,
+    TextTransform textTransform,
     TextDecoration textDecoration,
     Color textDecorationColor,
     TextDecorationStyle textDecorationStyle,
@@ -332,6 +350,8 @@ class Style {
       padding: padding ?? this.padding,
       margin: margin ?? this.margin,
       textAlign: textAlign ?? this.textAlign,
+      textIndent: textIndent ?? this.textIndent,
+      textTransform: textTransform ?? this.textTransform,
       textDecoration: textDecoration ?? this.textDecoration,
       textDecorationColor: textDecorationColor ?? this.textDecorationColor,
       textDecorationStyle: textDecorationStyle ?? this.textDecorationStyle,
@@ -417,4 +437,11 @@ enum VerticalAlign {
 enum WhiteSpace {
   NORMAL,
   PRE,
+}
+
+enum TextTransform {
+  none,
+  capitalize,
+  uppercase,
+  lowercase,
 }

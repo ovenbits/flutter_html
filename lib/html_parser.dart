@@ -11,8 +11,8 @@ import 'package:flutter_html/src/layout_element.dart';
 import 'package:flutter_html/src/utils.dart';
 import 'package:flutter_html/style.dart';
 import 'package:html/dom.dart' as dom;
-import 'package:html/src/query_selector.dart';
 import 'package:html/parser.dart' as htmlparser;
+import 'package:flutter_html/src/string_ext.dart';
 
 typedef OnTap = void Function(String url);
 typedef CustomRender = Widget Function(
@@ -209,6 +209,7 @@ class HtmlParser extends StatelessWidget {
     tree = _processBeforesAndAfters(tree);
     tree = _collapseMargins(tree);
     tree = _processFontSize(tree);
+    tree = _processTextTransform(tree);
     return tree;
   }
 
@@ -645,6 +646,34 @@ class HtmlParser extends StatelessWidget {
     });
     return tree;
   }
+
+  /// [_processTextTransorm] applies text-transform css attributes
+  static StyledElement _processTextTransform(StyledElement tree) {
+    if (tree is TextContentElement) {
+      switch (tree.style.textTransform) {
+        case TextTransform.capitalize:
+          tree.text = tree.text.toLowerCase();
+          break;
+        case TextTransform.uppercase:
+          tree.text = tree.text.toUpperCase();
+          break;
+        case TextTransform.lowercase:
+          tree.text = tree.text.toLowerCase();
+          break;
+      }
+
+      tree.text = tree.text.capitalize();
+    } else {
+      tree.children?.forEach((child) {
+        if (child.style.textTransform == null) {
+          child.style.textTransform = tree.style.textTransform;
+        }
+        _processTextTransform(child);
+      });
+    }
+
+    return tree;
+  }
 }
 
 /// The [RenderContext] is available when parsing the tree. It contains information
@@ -720,7 +749,7 @@ class StyledText extends StatelessWidget {
     return SizedBox(
       width: style.display == Display.BLOCK || style.display == Display.LIST_ITEM ? double.infinity : null,
       child: Text.rich(
-        textSpan,
+        style.textIndent == null || style.textIndent == 0 ? textSpan : TextSpan(children: [WidgetSpan(child: SizedBox(width: style.textIndent + 10)), textSpan]),
         style: style.generateTextStyle(),
         textAlign: style.textAlign,
         textDirection: style.direction,

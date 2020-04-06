@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:csslib/parser.dart' as parser;
 import 'package:csslib/visitor.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_html/src/styled_element.dart';
@@ -9,20 +10,93 @@ import 'package:html/src/query_selector.dart';
 Map<String, Style> cssToStyles(StyleSheet sheet) {
   sheet.topLevels.forEach((treeNode) {
     if (treeNode is RuleSet) {
-      print(
-          treeNode.selectorGroup.selectors.first.simpleSelectorSequences.first.simpleSelector.name);
+      print(treeNode.selectorGroup.selectors.first.simpleSelectorSequences.first.simpleSelector.name);
     }
   });
+}
+
+class FontFaceDirectiveVisitor extends Visitor {
+  final String fontFamily;
+  final int fontWeight;
+  final String fontStyle;
+
+  String _currentProperty;
+  String _directiveFontFamily;
+  int _directiveFontWeight;
+  String _directiveFontStyle;
+  String _directiveSrc;
+
+  FontFaceDirectiveVisitor(this.fontFamily, this.fontWeight, this.fontStyle);
+
+  String getSrc(FontFaceDirective directive) {
+    directive.visit(this);
+
+    print('getSrc:');
+    print('expected: $fontFamily, $fontWeight, $fontStyle');
+    print('found:    $_directiveFontFamily, $_directiveFontWeight, $_directiveFontStyle');
+    if (fontFamily == _directiveFontFamily && fontWeight == _directiveFontWeight && (fontStyle == null || fontStyle == _directiveFontStyle)) {
+//      && fontWeight == _directiveFontWeight && fontStyle == _directiveFontStyle) {
+      return _directiveSrc;
+    }
+
+    return null;
+  }
+
+  @override
+  void visitDeclaration(Declaration node) {
+    print('visitDeclaration(${node.span.text})');
+    _currentProperty = node.property;
+    node.expression.visit(this);
+    node.dartStyle?.visit(this);
+  }
+
+  @override
+  void visitLiteralTerm(LiteralTerm node) {
+    print('FontFaceDirectiveVisitor.visitLiteralTerm(${node.text})');
+    switch (_currentProperty) {
+//      case 'font-family':
+//        _directiveFontFamily = node.text;
+//        break;
+//      case 'font-weight':
+//        _directiveFontWeight = node.text;
+//        break;
+      case 'font-style':
+        _directiveFontStyle = node.text;
+        break;
+    }
+  }
+
+  @override
+  void visitFontExpression(FontExpression node) {
+    print('FontFaceDirectiveVisitor.visitFontExpression(${node.span.text})');
+
+    if (node.font.family.isNotEmpty) {
+      _directiveFontFamily = node.font.family.first;
+    }
+
+    _directiveFontWeight = node.font.weight;
+  }
+
+  @override
+  void visitUriTerm(UriTerm node) {
+    print('FontFaceDirectiveVisitor.visitUriTerm(${node.text})');
+    switch (_currentProperty) {
+      case 'src':
+        _directiveSrc = node.text;
+        break;
+    }
+  }
 }
 
 class DeclarationVisitor extends Visitor {
   final StyledElement element;
   final bool isInline;
-
+  final List<FontFaceDirective> _fontFaceDirectives = [];
   String _currentProperty;
+  String _currentFontStyle;
 
   DeclarationVisitor({this.element, this.isInline = false}) {
-    // print('\nDeclarationVisitor(<${element?.name} id="${element?.elementId}" class="${element?.elementClasses?.join(' ')}" ${element?.attributes?.entries?.map((entry) => '[${entry.key}=${entry.value}]')?.join(' ')}');
+    print('\nDeclarationVisitor(<${element?.name} id="${element?.elementId}" class="${element?.elementClasses?.join(' ')}" ${element?.attributes?.entries?.map((entry) => '[${entry.key}=${entry.value}]')?.join(' ')}');
   }
 
   void applyDeclarations(StyleSheet sheet) {
@@ -39,10 +113,17 @@ class DeclarationVisitor extends Visitor {
 
   @override
   void visitDeclaration(Declaration node) {
-    // print('visitDeclaration(${node.span.text})');
-    _currentProperty = node.property;
-    node.expression.visit(this);
+    print('visitDeclaration(${node.span.text})');
+    if (node.property != 'src') {
+      _currentProperty = node.property;
+    }
+    super.visitDeclaration(node);
     node.dartStyle?.visit(this);
+  }
+
+  @override
+  void visitFontFaceDirective(FontFaceDirective node) {
+    _fontFaceDirectives.add(node);
   }
 
   @override
@@ -56,7 +137,7 @@ class DeclarationVisitor extends Visitor {
 
   @override
   void visitEmTerm(EmTerm node) {
-    // print('visitEmTerm(${node.text})');
+    print('visitEmTerm(${node.text})');
     switch (_currentProperty) {
       case 'font-size':
         element.style.fontSize = FontSize(FontSize.medium.size * double.parse(node.text));
@@ -65,7 +146,7 @@ class DeclarationVisitor extends Visitor {
 
   @override
   void visitLiteralTerm(LiteralTerm node) {
-    // print('visitLiteralTerm(${node.text})');
+    print('visitLiteralTerm(${node.text})');
     switch (_currentProperty) {
       case 'direction':
         element.style.direction = ExpressionMapping.expressionToDirection(node);
@@ -73,11 +154,16 @@ class DeclarationVisitor extends Visitor {
       case 'display':
         element.style.display = ExpressionMapping.expressionToDisplay(node);
         break;
+      case 'text-align':
+        element.style.textAlign = ExpressionMapping.expressionToTextAlign(node);
+        break;
+      case 'text-transform':
+        element.style.textTransform = ExpressionMapping.expressionToTextTransform(node);
+        break;
       case 'font-style':
+        _currentFontStyle = node.text;
         element.style.fontStyle = ExpressionMapping.expressionToFontStyle(node);
         break;
-      case 'font-family':
-        element.style.fontFamily = ExpressionMapping.expressionToFontFamily(node);
     }
   }
 
@@ -95,20 +181,120 @@ class DeclarationVisitor extends Visitor {
   }
 
   @override
+  void visitLengthTerm(LengthTerm node) {
+    print('visitLengthTerm(${node.text})');
+    if (node.unit != parser.TokenKind.UNIT_LENGTH_PX) {
+      // TODO support other unit types
+      return;
+    }
+
+    switch (_currentProperty) {
+      case 'margin-left':
+        visitMarginExpression(MarginExpression(node.span, left: node.value));
+        break;
+      case 'margin-top':
+        visitMarginExpression(MarginExpression(node.span, top: node.value));
+        break;
+      case 'margin-right':
+        visitMarginExpression(MarginExpression(node.span, right: node.value));
+        break;
+      case 'margin-bottom':
+        visitMarginExpression(MarginExpression(node.span, bottom: node.value));
+        break;
+      case 'text-indent':
+        element.style.textIndent = node.value.toDouble();
+        break;
+    }
+  }
+
+  @override
+  void visitNumberTerm(NumberTerm node) {
+    print('visitNumberTerm(${node.text})');
+    switch (_currentProperty) {
+      case 'margin-left':
+        visitMarginExpression(MarginExpression(node.span, left: node.value));
+        break;
+      case 'margin-top':
+        visitMarginExpression(MarginExpression(node.span, top: node.value));
+        break;
+      case 'margin-right':
+        visitMarginExpression(MarginExpression(node.span, right: node.value));
+        break;
+      case 'margin-bottom':
+        visitMarginExpression(MarginExpression(node.span, bottom: node.value));
+        break;
+      case 'text-indent':
+        element.style.textIndent = node.value.toDouble();
+        break;
+    }
+  }
+
+  @override
+  void visitUriTerm(UriTerm node) {
+    print('visitUriTerm(${node.text})');
+    switch (_currentProperty) {
+      case 'font-weight':
+        if (element.style.fontFamily == null) element.style.fontFamily = ExpressionMapping.expressionToFontFamily(node);
+        break;
+    }
+  }
+
+  @override
   void visitFontExpression(FontExpression node) {
-    // print('visitFontExpression(${node.span.text})');
-    // element.style.fontFamily = node.font.family?.join(', ');
+    print('visitFontExpression(${node.span.text})');
+    if (node.font.family?.isNotEmpty == true) {
+      element.style.fontFamily = node.font.family.first;
+    }
     element.style.fontWeight = ExpressionMapping.expressionToFontWeight(node);
+
+    for (var fontFaceDirective in _fontFaceDirectives) {
+      if (node.font?.family == null) {
+        continue;
+      }
+      for (var fontFamily in node.font?.family) {
+        final foundFontFaceSrc = FontFaceDirectiveVisitor(fontFamily, node.font.weight, _currentFontStyle).getSrc(fontFaceDirective);
+        if (foundFontFaceSrc != null) {
+          element.style.fontFamily = foundFontFaceSrc;
+          return;
+        }
+      }
+    }
   }
 
   @override
   void visitBoxExpression(BoxExpression node) {
-    // print('visitBoxExpression(${node.span.text})');
+//     print('visitBoxExpression(${node.span.text})');
+  }
+
+  @override
+  void visitMarginGroup(MarginGroup node) {
+    print('visitMarginGroup(${node.span.text})');
   }
 
   @override
   void visitMarginExpression(MarginExpression node) {
-    // print('visitMarginExpression(${node.span.text})');
+    print('visitMarginExpression(${node.box.left} ${node.box.top} ${node.box.right} ${node.box.bottom})');
+    final box = node.box;
+
+    if (element.style.margin == null) {
+      element.style.margin = EdgeInsets.fromLTRB(box.left?.toDouble() ?? 0, box.top?.toDouble() ?? 0, box.right?.toDouble() ?? 0, box.bottom?.toDouble() ?? 0);
+    } else {
+      if (box.left != null) {
+        element.style.margin = element.style.margin.copyWith(left: box.left.toDouble());
+      }
+
+      if (box.top != null) {
+        element.style.margin = element.style.margin.copyWith(top: box.top.toDouble());
+      }
+
+      if (box.right != null) {
+        element.style.margin = element.style.margin.copyWith(right: box.right.toDouble());
+      }
+
+      if (box.bottom != null) {
+        element.style.margin = element.style.margin.copyWith(bottom: box.bottom.toDouble());
+      }
+    }
   }
 
   @override
@@ -130,13 +316,12 @@ class DeclarationVisitor extends Visitor {
 
   @override
   void visitWidthExpression(WidthExpression node) {
-    // print('visitWidthExpression(${node.span.text})');
+    print('visitWidthExpression(${node.span.text})');
   }
 }
 
 //Mapping functions
 class ExpressionMapping {
-
   static Color expressionToColor(Expression value) {
     if (value is HexColorTerm) {
       return stringToColor(value.text);
@@ -262,11 +447,28 @@ class ExpressionMapping {
     }
   }
 
+  static TextTransform expressionToTextTransform(Expression value) {
+    if (value is LiteralTerm) {
+      switch (value.text) {
+        case 'none':
+          return TextTransform.none;
+        case 'capitalize':
+          return TextTransform.capitalize;
+        case 'uppercase':
+          return TextTransform.uppercase;
+        case 'lowercase':
+          return TextTransform.lowercase;
+      }
+    }
+  }
+
   static String expressionToFontFamily(Expression value) {
     if (value is LiteralTerm) {
+      print('expressionToFontFamily(${value.text})');
       return value.text;
+    } else {
+      print('expressionToFontFamily(${value.span.text})');
+      return value.span.text;
     }
   }
 }
-
-
