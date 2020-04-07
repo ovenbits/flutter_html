@@ -124,7 +124,7 @@ class TableRowLayoutElement extends LayoutElement {
                           border: c.style.border,
                         ),
                         child: StyledText(
-                          textSpan: context.parser.parseTree(context, c),
+                          textSpan: HtmlParser.parseTree(context, c),
                           style: c.style,
                         )));
               }

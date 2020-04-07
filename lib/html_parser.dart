@@ -72,14 +72,14 @@ class HtmlParser extends StatelessWidget {
     StyledElement cascadedStyledTree = await compute(_cascadeStyles, customStyledTree);
     StyledElement cleanedTree = await compute(HtmlParser.cleanTree, cascadedStyledTree);
 
-    InlineSpan parsedTree = await parseTree(
+    InlineSpan parsedTree = _computeParseTree([
       RenderContext(
         buildContext: context,
         parser: this,
         style: Style.fromTextStyle(Theme.of(context).textTheme.body1),
       ),
       cleanedTree,
-    );
+    ]);
 
     return ParseResult(parsedTree, cleanedTree.style);
   }
@@ -227,26 +227,30 @@ class HtmlParser extends StatelessWidget {
     return tree;
   }
 
+  static InlineSpan _computeParseTree(List args) {
+    return parseTree(args[0], args[1]);
+  }
+
   /// [parseTree] converts a tree of [StyledElement]s to an [InlineSpan] tree.
   ///
   /// [parseTree] is responsible for handling the [customRender] parameter and
   /// deciding what different `Style.display` options look like as Widgets.
-  InlineSpan parseTree(RenderContext context, StyledElement tree) {
+  static InlineSpan parseTree(RenderContext context, StyledElement tree) {
     // Merge this element's style into the context so that children
     // inherit the correct style
     RenderContext newContext = RenderContext(
       buildContext: context.buildContext,
-      parser: this,
+      parser: context.parser,
       style: context.style.copyOnlyInherited(tree.style),
     );
 
-    if (customRender?.containsKey(tree.name) ?? false) {
+    if (context.parser.customRender?.containsKey(tree.name) ?? false) {
       return WidgetSpan(
         child: ContainerSpan(
           newContext: newContext,
           style: tree.style,
           shrinkWrap: context.parser.shrinkWrap,
-          child: customRender[tree.name].call(
+          child: context.parser.customRender[tree.name].call(
             newContext,
             ContainerSpan(
               newContext: newContext,
@@ -315,7 +319,7 @@ class HtmlParser extends StatelessWidget {
             MultipleTapGestureRecognizer: GestureRecognizerFactoryWithHandlers<MultipleTapGestureRecognizer>(
               () => MultipleTapGestureRecognizer(),
               (instance) {
-                instance..onTap = () => onLinkTap?.call(tree.href);
+//                instance..onTap = () => onLinkTap?.call(tree.href);
               },
             ),
           },
@@ -625,7 +629,7 @@ class HtmlParser extends StatelessWidget {
     if (tree is TextContentElement) {
       switch (tree.style.textTransform) {
         case TextTransform.capitalize:
-          tree.text = tree.text.toLowerCase();
+          tree.text = tree.text.capitalize();
           break;
         case TextTransform.uppercase:
           tree.text = tree.text.toUpperCase();
@@ -636,8 +640,6 @@ class HtmlParser extends StatelessWidget {
         case TextTransform.none:
           break;
       }
-
-      tree.text = tree.text.capitalize();
     } else {
       tree.children?.forEach(_processTextTransform);
     }
