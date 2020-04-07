@@ -81,10 +81,12 @@ packages:
   csslib:
     dependency: "direct main"
     description:
-      name: csslib
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.16.1"
+      path: "."
+      ref: HEAD
+      resolved-ref: b2092a955c30740d14a92c9cc1392093f616fe44
+      url: "https://github.com/jfri/csslib.git"
+    source: git
+    version: "0.16.2-dev"
   flutter:
     dependency: "direct main"
     description: flutter
