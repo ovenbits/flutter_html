@@ -72,14 +72,14 @@ class HtmlParser extends StatelessWidget {
     StyledElement cascadedStyledTree = await compute(_cascadeStyles, customStyledTree);
     StyledElement cleanedTree = await compute(HtmlParser.cleanTree, cascadedStyledTree);
 
-    InlineSpan parsedTree = _computeParseTree([
+    InlineSpan parsedTree = parseTree(
       RenderContext(
         buildContext: context,
         parser: this,
         style: Style.fromTextStyle(Theme.of(context).textTheme.body1),
       ),
       cleanedTree,
-    ]);
+    );
 
     return ParseResult(parsedTree, cleanedTree.style);
   }
@@ -319,7 +319,7 @@ class HtmlParser extends StatelessWidget {
             MultipleTapGestureRecognizer: GestureRecognizerFactoryWithHandlers<MultipleTapGestureRecognizer>(
               () => MultipleTapGestureRecognizer(),
               (instance) {
-//                instance..onTap = () => onLinkTap?.call(tree.href);
+                instance..onTap = () => context.parser.onLinkTap?.call(tree.href);
               },
             ),
           },

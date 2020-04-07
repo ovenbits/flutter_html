@@ -117,7 +117,7 @@ class DeclarationVisitor extends Visitor {
       _currentProperty = node.property;
     }
     super.visitDeclaration(node);
-//    node.dartStyle?.visit(this);
+    node.dartStyle?.visit(this);
   }
 
   @override
@@ -139,7 +139,7 @@ class DeclarationVisitor extends Visitor {
     // print('visitEmTerm(${node.text})');
     switch (_currentProperty) {
       case 'font-size':
-        element.style.fontSize = FontSize(FontSize.medium.size * double.parse(node.text));
+        element.style.fontSize = FontSize(FontSize.oneEm.size * double.parse(node.text));
     }
   }
 

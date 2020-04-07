@@ -423,6 +423,7 @@ class FontSize {
   static const xxLarge = FontSize(28.0);
   static const smaller = FontSize(-0.83);
   static const larger = FontSize(-1.2);
+  static const oneEm = FontSize(16);
 }
 
 enum ListStyleType {
