@@ -34,9 +34,7 @@ class TableLayoutElement extends LayoutElement {
           return group.children.where((c) => c.name == "col").map((c) {
             final widthStr = c.attributes["width"] ?? "";
             if (widthStr.endsWith("%")) {
-              final width =
-                  double.tryParse(widthStr.substring(0, widthStr.length - 1)) *
-                      0.01;
+              final width = double.tryParse(widthStr.substring(0, widthStr.length - 1)) * 0.01;
               return FractionColumnWidth(width);
             } else {
               final width = double.tryParse(widthStr);

@@ -294,6 +294,8 @@ class Style {
       letterSpacing: child.letterSpacing ?? letterSpacing,
       listStyleType: child.listStyleType ?? listStyleType,
       textAlign: child.textAlign ?? textAlign,
+      textIndent: child.textIndent ?? textIndent,
+      textTransform: child.textTransform ?? textTransform,
       textShadow: child.textShadow ?? textShadow,
       whiteSpace: child.whiteSpace ?? whiteSpace,
       wordSpacing: child.wordSpacing ?? wordSpacing,
