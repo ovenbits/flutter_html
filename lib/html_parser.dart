@@ -60,6 +60,27 @@ class HtmlParser extends StatelessWidget {
     );
   }
 
+//  Future<ParseResult> _parseTree(BuildContext context) async {
+//    dom.Document document = await compute(HtmlParser.parseHTML, htmlData);
+//    css.StyleSheet sheet = await compute(HtmlParser.parseCSS, cssData);
+//    StyledElement lexedTree = await compute(HtmlParser._lexDomTree, [document, customRender?.keys?.toList() ?? [], blacklistedElements]);
+//
+//    // TODO(Sub6Resources): this could be simplified to a single recursive descent.
+//    StyledElement styledTree = await compute(HtmlParser.applyCSS, [lexedTree, sheet]);
+//    StyledElement inlineStyledTree = await compute(HtmlParser.applyInlineStyles, styledTree);
+//    StyledElement customStyledTree = _applyCustomStyles(inlineStyledTree);
+//    StyledElement cascadedStyledTree = await compute(_cascadeStyles, customStyledTree);
+//    StyledElement cleanedTree = await compute(HtmlParser.cleanTree, cascadedStyledTree);
+//
+//    InlineSpan parsedTree = await compute(_computeParseTree,
+//      [RenderContext(
+//        buildContext: context,
+//        parser: this,
+//        style: Style.fromTextStyle(Theme.of(context).textTheme.body1),
+//      ),
+//      cleanedTree]
+//    );
+
   Future<ParseResult> _parseTree(BuildContext context) async {
     dom.Document document = await compute(HtmlParser.parseHTML, htmlData);
     css.StyleSheet sheet = await compute(HtmlParser.parseCSS, cssData);
@@ -72,7 +93,7 @@ class HtmlParser extends StatelessWidget {
     StyledElement cascadedStyledTree = await compute(_cascadeStyles, customStyledTree);
     StyledElement cleanedTree = await compute(HtmlParser.cleanTree, cascadedStyledTree);
 
-    InlineSpan parsedTree = parseTree(
+    InlineSpan parsedTree = await parseTree(
       RenderContext(
         buildContext: context,
         parser: this,
@@ -227,15 +248,15 @@ class HtmlParser extends StatelessWidget {
     return tree;
   }
 
-  static InlineSpan _computeParseTree(List args) {
-    return parseTree(args[0], args[1]);
-  }
+//  static InlineSpan _computeParseTree(List args) {
+//    return parseTree(args[0], args[1]);
+//  }
 
   /// [parseTree] converts a tree of [StyledElement]s to an [InlineSpan] tree.
   ///
   /// [parseTree] is responsible for handling the [customRender] parameter and
   /// deciding what different `Style.display` options look like as Widgets.
-  static InlineSpan parseTree(RenderContext context, StyledElement tree) {
+  static Future<InlineSpan> parseTree(RenderContext context, StyledElement tree) async {
     // Merge this element's style into the context so that children
     // inherit the correct style
     RenderContext newContext = RenderContext(
@@ -256,7 +277,7 @@ class HtmlParser extends StatelessWidget {
               newContext: newContext,
               style: tree.style,
               shrinkWrap: context.parser.shrinkWrap,
-              children: tree.children?.map((tree) => parseTree(newContext, tree))?.toList() ?? [],
+              children: await Future.wait(tree.children?.map((tree) => parseTree(newContext, tree))?.toList() ?? []),
             ),
             tree.attributes,
             tree.element,
@@ -272,7 +293,7 @@ class HtmlParser extends StatelessWidget {
           newContext: newContext,
           style: tree.style,
           shrinkWrap: context.parser.shrinkWrap,
-          children: tree.children?.map((tree) => parseTree(newContext, tree))?.toList() ?? [],
+          children: await Future.wait(tree.children?.map((tree) => parseTree(newContext, tree))?.toList() ?? []),
         ),
       );
     } else if (tree.style?.display == Display.LIST_ITEM) {
@@ -292,7 +313,7 @@ class HtmlParser extends StatelessWidget {
                 padding: EdgeInsets.only(left: 30), //TODO derive this from list padding.
                 child: StyledText(
                   textSpan: TextSpan(
-                    children: tree.children?.map((tree) => parseTree(newContext, tree))?.toList() ?? [],
+                    children: await Future.wait(tree.children?.map((tree) => parseTree(newContext, tree))?.toList() ?? []),
                     style: newContext.style.generateTextStyle(),
                   ),
                   style: newContext.style,
@@ -326,7 +347,7 @@ class HtmlParser extends StatelessWidget {
           child: StyledText(
             textSpan: TextSpan(
               style: newContext.style.generateTextStyle(),
-              children: tree.children.map((tree) => parseTree(newContext, tree)).toList() ?? [],
+              children: await Future.wait(tree.children.map((tree) => parseTree(newContext, tree)).toList() ?? []),
             ),
             style: newContext.style,
           ),
@@ -334,7 +355,7 @@ class HtmlParser extends StatelessWidget {
       );
     } else if (tree is LayoutElement) {
       return WidgetSpan(
-        child: tree.toWidget(context),
+        child: await tree.toWidget(context),
       );
     } else if (tree.style.verticalAlign != null && tree.style.verticalAlign != VerticalAlign.BASELINE) {
       double verticalOffset;
@@ -355,7 +376,7 @@ class HtmlParser extends StatelessWidget {
           child: StyledText(
             textSpan: TextSpan(
               style: newContext.style.generateTextStyle(),
-              children: tree.children.map((tree) => parseTree(newContext, tree)).toList() ?? [],
+              children: await Future.wait(tree.children.map((tree) => parseTree(newContext, tree)).toList() ?? []),
             ),
             style: newContext.style,
           ),
@@ -365,7 +386,7 @@ class HtmlParser extends StatelessWidget {
       ///[tree] is an inline element.
       return TextSpan(
         style: newContext.style.generateTextStyle(),
-        children: tree.children.map((tree) => parseTree(newContext, tree)).toList(),
+        children: await Future.wait(tree.children.map((tree) => parseTree(newContext, tree)).toList() ?? []),
       );
     }
   }
@@ -718,6 +739,7 @@ class StyledText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // WidgetSpan is broken on web. See https://github.com/flutter/flutter/issues/42086
     return SizedBox(
       width: style.display == Display.BLOCK || style.display == Display.LIST_ITEM ? double.infinity : null,
       child: Text.rich(

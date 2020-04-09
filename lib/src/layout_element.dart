@@ -15,7 +15,7 @@ abstract class LayoutElement extends StyledElement {
     dom.Element node,
   }) : super(name: name, children: children, style: style, node: node);
 
-  Widget toWidget(RenderContext context);
+  Future<Widget> toWidget(RenderContext context);
 }
 
 class TableLayoutElement extends LayoutElement {
@@ -27,7 +27,7 @@ class TableLayoutElement extends LayoutElement {
   }) : super(name: name, style: style, children: children, node: node);
 
   @override
-  Widget toWidget(RenderContext context) {
+  Future<Widget> toWidget(RenderContext context) async {
     final colWidths = children
         .where((c) => c.name == "colgroup")
         .map((group) {
@@ -55,7 +55,7 @@ class TableLayoutElement extends LayoutElement {
         height: style.height,
         child: Table(
           columnWidths: colWidths,
-          children: children
+          children: (await Future.wait(children
               .map((c) {
                 if (c is TableSectionLayoutElement) {
                   return c.toTableRows(context);
@@ -65,7 +65,7 @@ class TableLayoutElement extends LayoutElement {
               .where((t) {
                 return t != null;
               })
-              .toList()
+              .toList()))
               .expand((i) => i)
               .toList(),
         ));
@@ -79,19 +79,19 @@ class TableSectionLayoutElement extends LayoutElement {
   }) : super(name: name, children: children);
 
   @override
-  Widget toWidget(RenderContext context) {
+  Future<Widget> toWidget(RenderContext context) async {
     return Container(child: Text("TABLE SECTION"));
   }
 
-  List<TableRow> toTableRows(RenderContext context) {
-    return children.map((c) {
+  Future<List<TableRow>> toTableRows(RenderContext context) async {
+    return await Future.wait(children.map((c) {
       if (c is TableRowLayoutElement) {
         return c.toTableRow(context);
       }
       return null;
     }).where((t) {
       return t != null;
-    }).toList();
+    }).toList());
   }
 }
 
@@ -103,18 +103,18 @@ class TableRowLayoutElement extends LayoutElement {
   }) : super(name: name, children: children, node: node);
 
   @override
-  Widget toWidget(RenderContext context) {
+  Future<Widget> toWidget(RenderContext context) async {
     return Container(child: Text("TABLE ROW"));
   }
 
-  TableRow toTableRow(RenderContext context) {
+  Future<TableRow> toTableRow(RenderContext context) async {
     return TableRow(
         decoration: BoxDecoration(
           border: style.border,
           color: style.backgroundColor,
         ),
-        children: children
-            .map((c) {
+        children: (await Future.wait(children
+            .map((c) async {
               if (c is StyledElement && c.name == 'td' || c.name == 'th') {
                 return TableCell(
                     child: Container(
@@ -124,12 +124,12 @@ class TableRowLayoutElement extends LayoutElement {
                           border: c.style.border,
                         ),
                         child: StyledText(
-                          textSpan: HtmlParser.parseTree(context, c),
+                          textSpan: await HtmlParser.parseTree(context, c),
                           style: c.style,
                         )));
               }
               return null;
-            })
+            })))
             .where((c) => c != null)
             .toList());
   }
