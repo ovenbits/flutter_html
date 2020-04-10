@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:collection';
 import 'dart:math';
 
@@ -22,8 +23,9 @@ typedef CustomRender = Widget Function(
   Map<String, String> attributes,
   dom.Element element,
 );
+typedef OnContentRendered = Function(Size size);
 
-class HtmlParser extends StatelessWidget {
+class HtmlParser extends StatefulWidget {
   final String htmlData;
   final String cssData;
   final OnTap onLinkTap;
@@ -34,6 +36,8 @@ class HtmlParser extends StatelessWidget {
   final Map<String, Style> style;
   final Map<String, CustomRender> customRender;
   final List<String> blacklistedElements;
+  final Widget loadingPlaceholder;
+  final OnContentRendered onContentRendered;
 
   HtmlParser({
     @required this.htmlData,
@@ -45,65 +49,12 @@ class HtmlParser extends StatelessWidget {
     this.style,
     this.customRender,
     this.blacklistedElements,
+    this.loadingPlaceholder,
+    this.onContentRendered,
   });
 
   @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<ParseResult>(
-      future: _parseTree(context),
-      initialData: null,
-      builder: (context, snapshot) => snapshot.data != null
-          ? StyledText(textSpan: snapshot.data.inlineSpan, style: snapshot.data.style)
-          : Container(
-              height: 1000,
-            ),
-    );
-  }
-
-//  Future<ParseResult> _parseTree(BuildContext context) async {
-//    dom.Document document = await compute(HtmlParser.parseHTML, htmlData);
-//    css.StyleSheet sheet = await compute(HtmlParser.parseCSS, cssData);
-//    StyledElement lexedTree = await compute(HtmlParser._lexDomTree, [document, customRender?.keys?.toList() ?? [], blacklistedElements]);
-//
-//    // TODO(Sub6Resources): this could be simplified to a single recursive descent.
-//    StyledElement styledTree = await compute(HtmlParser.applyCSS, [lexedTree, sheet]);
-//    StyledElement inlineStyledTree = await compute(HtmlParser.applyInlineStyles, styledTree);
-//    StyledElement customStyledTree = _applyCustomStyles(inlineStyledTree);
-//    StyledElement cascadedStyledTree = await compute(_cascadeStyles, customStyledTree);
-//    StyledElement cleanedTree = await compute(HtmlParser.cleanTree, cascadedStyledTree);
-//
-//    InlineSpan parsedTree = await compute(_computeParseTree,
-//      [RenderContext(
-//        buildContext: context,
-//        parser: this,
-//        style: Style.fromTextStyle(Theme.of(context).textTheme.body1),
-//      ),
-//      cleanedTree]
-//    );
-
-  Future<ParseResult> _parseTree(BuildContext context) async {
-    dom.Document document = await compute(HtmlParser.parseHTML, htmlData);
-    css.StyleSheet sheet = await compute(HtmlParser.parseCSS, cssData);
-    StyledElement lexedTree = await compute(HtmlParser._lexDomTree, [document, customRender?.keys?.toList() ?? [], blacklistedElements]);
-
-    // TODO(Sub6Resources): this could be simplified to a single recursive descent.
-    StyledElement styledTree = await compute(HtmlParser.applyCSS, [lexedTree, sheet]);
-    StyledElement inlineStyledTree = await compute(HtmlParser.applyInlineStyles, styledTree);
-    StyledElement customStyledTree = _applyCustomStyles(inlineStyledTree);
-    StyledElement cascadedStyledTree = await compute(_cascadeStyles, customStyledTree);
-    StyledElement cleanedTree = await compute(HtmlParser.cleanTree, cascadedStyledTree);
-
-    InlineSpan parsedTree = await parseTree(
-      RenderContext(
-        buildContext: context,
-        parser: this,
-        style: Style.fromTextStyle(Theme.of(context).textTheme.body1),
-      ),
-      cleanedTree,
-    );
-
-    return ParseResult(parsedTree, cleanedTree.style);
-  }
+  _HtmlParserState createState() => _HtmlParserState();
 
   /// [parseHTML] converts a string of HTML to a DOM document using the dart `html` library.
   static dom.Document parseHTML(String data) {
@@ -200,24 +151,6 @@ class HtmlParser extends StatelessWidget {
     }
 
     tree.children?.forEach(applyInlineStyles);
-
-    return tree;
-  }
-
-  /// [applyCustomStyles] applies the [Style] objects passed into the [Html]
-  /// widget onto the [StyledElement] tree, no cascading of styles is done at this point.
-  StyledElement _applyCustomStyles(StyledElement tree) {
-    if (style == null) return tree;
-    style.forEach((key, style) {
-      if (tree.matchesSelector(key)) {
-        if (tree.style == null) {
-          tree.style = style;
-        } else {
-          tree.style = tree.style.merge(style);
-        }
-      }
-    });
-    tree.children?.forEach(_applyCustomStyles);
 
     return tree;
   }
@@ -669,6 +602,161 @@ class HtmlParser extends StatelessWidget {
   }
 }
 
+class _HtmlParserState extends State<HtmlParser> {
+  static final _renderQueue = List<Completer>();
+
+  final GlobalKey _htmlGlobalKey = GlobalKey();
+
+  Completer _completer;
+  bool _isOffstage = true;
+
+  @override
+  void dispose() {
+    // If we're still waiting to run, just cancel and remove us from the render queue
+    if (_completer?.isCompleted == false) {
+      _completer.completeError(Exception('disposed'));
+      _renderQueue.remove(_completer);
+    }
+
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<ParseResult>(
+      future: _parseTree(context),
+      initialData: null,
+      builder: (context, snapshot) {
+        if (snapshot.data != null && _isOffstage) {
+          WidgetsBinding.instance.addPostFrameCallback(_afterLayout);
+        }
+
+        final children = <Widget>[];
+
+        if (_isOffstage || snapshot.data == null) {
+          children.add(
+            Visibility(
+              visible: !_isOffstage || snapshot.data == null,
+              child: widget.loadingPlaceholder ?? Container(height: 1000),
+            ),
+          );
+        }
+
+        if (snapshot.data != null) {
+          children.add(
+            Offstage(
+              offstage: _isOffstage,
+              child: StyledText(
+                key: _htmlGlobalKey,
+                textSpan: snapshot.data.inlineSpan,
+                style: snapshot.data.style,
+              ),
+            ),
+          );
+        }
+
+        return Stack(children: children);
+      },
+    );
+  }
+
+  void _afterLayout(Duration timeStamp) {
+    final RenderBox renderBox = _htmlGlobalKey.currentContext.findRenderObject();
+    final size = renderBox.size;
+
+    print("html size: $size");
+
+    widget.onContentRendered?.call(size);
+
+    setState(() {
+      _isOffstage = false;
+    });
+  }
+
+  Future<ParseResult> _parseTree(BuildContext context) async {
+    if (_completer != null) {
+      if (_renderQueue.isNotEmpty) {
+        _renderQueue.remove(_completer);
+      }
+
+      _completer.completeError(Exception('replaced'));
+    }
+
+    _completer = Completer();
+    _renderQueue.add(_completer);
+
+    try {
+      if (_renderQueue.length > 1) {
+        print('_parseTree waiting for queue');
+        await _completer.future;
+      } else {
+        _completer.complete();
+      }
+    } catch (exception) {
+      print('_parseTree ${exception.toString()}');
+      return null;
+    }
+
+    print('_parseTree parsing');
+
+    StyledElement cleanedTree;
+    InlineSpan parsedTree;
+
+    try {
+      dom.Document document = await compute(HtmlParser.parseHTML, widget.htmlData);
+      css.StyleSheet sheet = await compute(HtmlParser.parseCSS, widget.cssData);
+      StyledElement lexedTree = await compute(HtmlParser._lexDomTree, [document, widget.customRender?.keys?.toList() ?? [], widget.blacklistedElements]);
+
+      // TODO(Sub6Resources): this could be simplified to a single recursive descent.
+      StyledElement styledTree = await compute(HtmlParser.applyCSS, [lexedTree, sheet]);
+      StyledElement inlineStyledTree = await compute(HtmlParser.applyInlineStyles, styledTree);
+      StyledElement customStyledTree = _applyCustomStyles(inlineStyledTree);
+      StyledElement cascadedStyledTree = await compute(HtmlParser._cascadeStyles, customStyledTree);
+      cleanedTree = await compute(HtmlParser.cleanTree, cascadedStyledTree);
+
+      parsedTree = await HtmlParser.parseTree(
+        RenderContext(
+          buildContext: context,
+          parser: widget,
+          style: Style.fromTextStyle(Theme.of(context).textTheme.body1),
+        ),
+        cleanedTree,
+      );
+
+      print('_parseTree parsed');
+    } catch (exception) {
+      print(exception);
+      return null;
+    } finally {
+      _renderQueue.removeAt(0);
+      if (_renderQueue.isNotEmpty) {
+        _renderQueue[0].complete();
+      }
+      _completer = null;
+    }
+
+    return ParseResult(parsedTree, cleanedTree.style);
+  }
+
+  /// [applyCustomStyles] applies the [Style] objects passed into the [Html]
+  /// widget onto the [StyledElement] tree, no cascading of styles is done at this point.
+  StyledElement _applyCustomStyles(StyledElement tree) {
+    if (widget.style == null) return tree;
+    widget.style.forEach((key, style) {
+      if (tree.matchesSelector(key)) {
+        if (tree.style == null) {
+          tree.style = style;
+        } else {
+          tree.style = tree.style.merge(style);
+        }
+      }
+    });
+    tree.children?.forEach(_applyCustomStyles);
+
+    return tree;
+  }
+}
+
 /// The [RenderContext] is available when parsing the tree. It contains information
 /// about the [BuildContext] of the `Html` widget, contains the configuration available
 /// in the [HtmlParser], and contains information about the [Style] of the current
@@ -729,13 +817,10 @@ class ContainerSpan extends StatelessWidget {
 }
 
 class StyledText extends StatelessWidget {
+  const StyledText({Key key, this.textSpan, this.style}) : super(key: key);
+
   final InlineSpan textSpan;
   final Style style;
-
-  const StyledText({
-    this.textSpan,
-    this.style,
-  });
 
   @override
   Widget build(BuildContext context) {

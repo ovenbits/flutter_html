@@ -59,6 +59,8 @@ class Html extends StatelessWidget {
     @deprecated this.showImages = true,
     this.blacklistedElements = const [],
     this.style,
+    this.loadingPlaceholder,
+    this.onContentRendered,
   }) : super(key: key);
 
   final String data;
@@ -87,6 +89,8 @@ class Html extends StatelessWidget {
   final CustomEdgeInsets customEdgeInsets;
   final CustomTextStyle customTextStyle;
   final CustomTextAlign customTextAlign;
+  final Widget loadingPlaceholder;
+  final OnContentRendered onContentRendered;
 
   /// Fancy New Parser parameters
   final Map<String, Style> style;
@@ -133,6 +137,8 @@ class Html extends StatelessWidget {
         style: style,
         customRender: customRender,
         blacklistedElements: blacklistedElements,
+        loadingPlaceholder: loadingPlaceholder,
+        onContentRendered: onContentRendered,
       ),
     );
   }
