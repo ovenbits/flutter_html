@@ -128,6 +128,7 @@ class Html extends StatelessWidget {
       color: backgroundColor,
       width: width,
       child: HtmlParser(
+        key: Key(data),
         htmlData: data,
         cssData: css,
         onLinkTap: onLinkTap,

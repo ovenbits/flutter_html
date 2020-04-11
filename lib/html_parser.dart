@@ -26,6 +26,21 @@ typedef CustomRender = Widget Function(
 typedef OnContentRendered = Function(Size size);
 
 class HtmlParser extends StatefulWidget {
+  const HtmlParser({
+    Key key,
+    this.htmlData,
+    this.cssData,
+    this.onLinkTap,
+    this.onImageTap,
+    this.onImageError,
+    this.shrinkWrap,
+    this.style,
+    this.customRender,
+    this.blacklistedElements,
+    this.loadingPlaceholder,
+    this.onContentRendered,
+  }) : super(key: key);
+
   final String htmlData;
   final String cssData;
   final OnTap onLinkTap;
@@ -38,20 +53,6 @@ class HtmlParser extends StatefulWidget {
   final List<String> blacklistedElements;
   final Widget loadingPlaceholder;
   final OnContentRendered onContentRendered;
-
-  HtmlParser({
-    @required this.htmlData,
-    @required this.cssData,
-    this.onLinkTap,
-    this.onImageTap,
-    this.onImageError,
-    this.shrinkWrap,
-    this.style,
-    this.customRender,
-    this.blacklistedElements,
-    this.loadingPlaceholder,
-    this.onContentRendered,
-  });
 
   @override
   _HtmlParserState createState() => _HtmlParserState();
@@ -609,6 +610,13 @@ class _HtmlParserState extends State<HtmlParser> {
 
   Completer _completer;
   bool _isOffstage = true;
+  Future<ParseResult> _parseResult;
+
+  @override
+  void initState() {
+    super.initState();
+    _parseResult = _parseTree(context);
+  }
 
   @override
   void dispose() {
@@ -624,7 +632,7 @@ class _HtmlParserState extends State<HtmlParser> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<ParseResult>(
-      future: _parseTree(context),
+      future: _parseResult,
       initialData: null,
       builder: (context, snapshot) {
         if (snapshot.data != null && _isOffstage) {
@@ -633,29 +641,43 @@ class _HtmlParserState extends State<HtmlParser> {
 
         final children = <Widget>[];
 
-        if (_isOffstage || snapshot.data == null) {
+//        if (_isOffstage || snapshot.data == null) {
           children.add(
             Visibility(
-              visible: !_isOffstage || snapshot.data == null,
+              visible: _isOffstage || snapshot.data == null,
+              maintainSize: true,
+              maintainAnimation: true,
+              maintainState: true,
               child: widget.loadingPlaceholder ?? Container(height: 1000),
             ),
           );
-        }
+//        }
 
         if (snapshot.data != null) {
           children.add(
             Offstage(
               offstage: _isOffstage,
-              child: StyledText(
-                key: _htmlGlobalKey,
-                textSpan: snapshot.data.inlineSpan,
-                style: snapshot.data.style,
+              child: Container(
+                alignment: Alignment.topLeft,
+                child: StyledText(
+                  key: _htmlGlobalKey,
+                  textSpan: snapshot.data.inlineSpan,
+                  style: snapshot.data.style,
+                ),
               ),
             ),
           );
         }
 
-        return Stack(children: children);
+        return AnimatedSwitcher(
+          duration: kThemeAnimationDuration,
+          child: Stack(
+            alignment: Alignment.topLeft,
+            fit: StackFit.loose,
+            key: ValueKey(_isOffstage),
+            children: children,
+          ),
+        );
       },
     );
   }
@@ -728,11 +750,12 @@ class _HtmlParserState extends State<HtmlParser> {
       print(exception);
       return null;
     } finally {
-      _renderQueue.removeAt(0);
+      _renderQueue.remove(_completer);
+      _completer = null;
+
       if (_renderQueue.isNotEmpty) {
         _renderQueue[0].complete();
       }
-      _completer = null;
     }
 
     return ParseResult(parsedTree, cleanedTree.style);
