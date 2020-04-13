@@ -77,7 +77,7 @@ class ImageContentElement extends ReplacedElement {
   Widget toWidget(RenderContext context) {
     Widget imageWidget;
     if (src == null) {
-      imageWidget = Text(alt ?? "", style: context.style.generateTextStyle());
+      imageWidget = Text(alt ?? "", style: context.style.generateTextStyle(context.buildContext));
     } else if (src.startsWith("data:image") && src.contains("base64,")) {
       final decodedImage = base64.decode(src.split("base64,")[1].trim());
       precacheImage(
@@ -91,7 +91,7 @@ class ImageContentElement extends ReplacedElement {
         decodedImage,
         frameBuilder: (ctx, child, frame, _) {
           if (frame == null) {
-            return Text(alt ?? "", style: context.style.generateTextStyle());
+            return Text(alt ?? "", style: context.style.generateTextStyle(context.buildContext));
           }
           return child;
         },
@@ -109,7 +109,7 @@ class ImageContentElement extends ReplacedElement {
         assetPath,
         frameBuilder: (ctx, child, frame, _) {
           if (frame == null) {
-            return Text(alt ?? "", style: context.style.generateTextStyle());
+            return Text(alt ?? "", style: context.style.generateTextStyle(context.buildContext));
           }
           return child;
         },
@@ -126,7 +126,7 @@ class ImageContentElement extends ReplacedElement {
         src,
         frameBuilder: (ctx, child, frame, _) {
           if (frame == null) {
-            return Text(alt ?? "", style: context.style.generateTextStyle());
+            return Text(alt ?? "", style: context.style.generateTextStyle(context.buildContext));
           }
           return child;
         },
@@ -329,11 +329,11 @@ class RubyElement extends ReplacedElement {
                               Matrix4.translationValues(0, -(rubyYPos), 0),
                           child: Text(c.innerHtml,
                               style: context.style
-                                  .generateTextStyle()
+                                  .generateTextStyle(context.buildContext)
                                   .copyWith(fontSize: rubySize))))),
               Container(
                   child: Text(textNode.text.trim(),
-                      style: context.style.generateTextStyle())),
+                      style: context.style.generateTextStyle(context.buildContext))),
             ],
           );
           widgets.add(widget);

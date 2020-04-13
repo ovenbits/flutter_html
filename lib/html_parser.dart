@@ -241,14 +241,14 @@ class HtmlParser extends StatefulWidget {
               PositionedDirectional(
                 width: 30, //TODO derive this from list padding.
                 start: 0,
-                child: Text('${newContext.style.markerContent}\t', textAlign: TextAlign.right, style: newContext.style.generateTextStyle()),
+                child: Text('${newContext.style.markerContent}\t', textAlign: TextAlign.right, style: newContext.style.generateTextStyle(context.buildContext)),
               ),
               Padding(
                 padding: EdgeInsets.only(left: 30), //TODO derive this from list padding.
                 child: StyledText(
                   textSpan: TextSpan(
                     children: await Future.wait(tree.children?.map((tree) => parseTree(newContext, tree))?.toList() ?? []),
-                    style: newContext.style.generateTextStyle(),
+                    style: newContext.style.generateTextStyle(context.buildContext),
                   ),
                   style: newContext.style,
                 ),
@@ -280,7 +280,7 @@ class HtmlParser extends StatefulWidget {
           },
           child: StyledText(
             textSpan: TextSpan(
-              style: newContext.style.generateTextStyle(),
+              style: newContext.style.generateTextStyle(context.buildContext),
               children: await Future.wait(tree.children.map((tree) => parseTree(newContext, tree)).toList() ?? []),
             ),
             style: newContext.style,
@@ -309,7 +309,7 @@ class HtmlParser extends StatefulWidget {
           offset: Offset(0, verticalOffset),
           child: StyledText(
             textSpan: TextSpan(
-              style: newContext.style.generateTextStyle(),
+              style: newContext.style.generateTextStyle(context.buildContext),
               children: await Future.wait(tree.children.map((tree) => parseTree(newContext, tree)).toList() ?? []),
             ),
             style: newContext.style,
@@ -317,10 +317,19 @@ class HtmlParser extends StatefulWidget {
         ),
       );
     } else {
+      final List<InlineSpan> children = await Future.wait(tree.children.map((tree) => parseTree(newContext, tree)).toList());
+
       ///[tree] is an inline element.
-      return TextSpan(
-        style: newContext.style.generateTextStyle(),
-        children: await Future.wait(tree.children.map((tree) => parseTree(newContext, tree)).toList() ?? []),
+      return WidgetSpan(
+        child: Builder(
+          builder: (context) => StyledText(
+            style: newContext.style,
+            textSpan: TextSpan(
+              style: newContext.style.generateTextStyle(context),
+              children: children,
+            ),
+          ),
+        ),
       );
     }
   }
@@ -607,19 +616,20 @@ class _HtmlParserState extends State<HtmlParser> {
   static final _renderQueue = List<Completer>();
 
   final GlobalKey _htmlGlobalKey = GlobalKey();
+  final GlobalKey _animatedSwitcherKey = GlobalKey();
 
   Completer _completer;
   bool _isOffstage = true;
-  Future<ParseResult> _parseResult;
+  ParseResult _parseResult;
 
-  @override
-  void initState() {
-    super.initState();
-    _parseResult = _parseTree(context);
-  }
+  ThemeData _themeData;
+  StyledElement _cleanedTree;
+  bool _disposed = false;
 
   @override
   void dispose() {
+    _disposed = true;
+
     // If we're still waiting to run, just cancel and remove us from the render queue
     if (_completer?.isCompleted == false) {
       _completer.completeError(Exception('disposed'));
@@ -631,45 +641,65 @@ class _HtmlParserState extends State<HtmlParser> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<ParseResult>(
-      future: _parseResult,
-      initialData: null,
-      builder: (context, snapshot) {
-        if (snapshot.data != null && _isOffstage) {
-          WidgetsBinding.instance.addPostFrameCallback(_afterLayout);
-        }
+    final themeData = Theme.of(context);
+//    if (themeData != _themeData) {
+//      _themeData = themeData;
+////      _parseResult = null;
+//      _parseTree(context);
+//    }
 
-        final children = <Widget>[];
+    if (_parseResult == null) {
+      _parseTree(context);
+    }
 
-//        if (_isOffstage || snapshot.data == null) {
-          children.add(
-            Visibility(
-              visible: _isOffstage || snapshot.data == null,
-              maintainSize: true,
-              maintainAnimation: true,
-              maintainState: true,
-              child: widget.loadingPlaceholder ?? Container(height: 1000),
+    if (_parseResult != null && _isOffstage) {
+      WidgetsBinding.instance.addPostFrameCallback(_afterLayout);
+    }
+
+    final children = <Widget>[];
+
+    children.add(
+      Visibility(
+        visible: _isOffstage || _parseResult == null,
+        maintainSize: true,
+        maintainAnimation: true,
+        maintainState: true,
+        child: widget.loadingPlaceholder ?? Container(height: 1000),
+      ),
+    );
+
+    if (!_isOffstage && _parseResult != null) {
+      children.add(
+        StyledText(
+          key: _htmlGlobalKey,
+          textSpan: _parseResult.inlineSpan,
+          style: _parseResult.style,
+        ),
+      );
+    }
+
+    return Stack(
+      children: <Widget>[
+        if (_isOffstage && _parseResult != null)
+          Offstage(
+            offstage: true,
+            child: StyledText(
+              key: _htmlGlobalKey,
+              textSpan: _parseResult.inlineSpan,
+              style: _parseResult.style,
             ),
-          );
-//        }
-
-        if (snapshot.data != null) {
-          children.add(
-            Offstage(
-              offstage: _isOffstage,
-              child: Container(
-                alignment: Alignment.topLeft,
-                child: StyledText(
-                  key: _htmlGlobalKey,
-                  textSpan: snapshot.data.inlineSpan,
-                  style: snapshot.data.style,
-                ),
-              ),
-            ),
-          );
-        }
-
-        return AnimatedSwitcher(
+          ),
+        AnimatedSwitcher(
+          key: _animatedSwitcherKey,
+          layoutBuilder: (currentChild, previousChildren) {
+            return Stack(
+              children: <Widget>[
+                ...previousChildren,
+                if (currentChild != null) currentChild,
+              ],
+              alignment: Alignment.topLeft,
+            );
+          },
           duration: kThemeAnimationDuration,
           child: Stack(
             alignment: Alignment.topLeft,
@@ -677,8 +707,8 @@ class _HtmlParserState extends State<HtmlParser> {
             key: ValueKey(_isOffstage),
             children: children,
           ),
-        );
-      },
+        ),
+      ],
     );
   }
 
@@ -695,13 +725,15 @@ class _HtmlParserState extends State<HtmlParser> {
     });
   }
 
-  Future<ParseResult> _parseTree(BuildContext context) async {
+  Future<void> _parseTree(BuildContext context) async {
     if (_completer != null) {
       if (_renderQueue.isNotEmpty) {
         _renderQueue.remove(_completer);
       }
 
-      _completer.completeError(Exception('replaced'));
+      if (!_completer.isCompleted) {
+        _completer.completeError(Exception('replaced'));
+      }
     }
 
     _completer = Completer();
@@ -721,20 +753,21 @@ class _HtmlParserState extends State<HtmlParser> {
 
     print('_parseTree parsing');
 
-    StyledElement cleanedTree;
     InlineSpan parsedTree;
 
     try {
-      dom.Document document = await compute(HtmlParser.parseHTML, widget.htmlData);
-      css.StyleSheet sheet = await compute(HtmlParser.parseCSS, widget.cssData);
-      StyledElement lexedTree = await compute(HtmlParser._lexDomTree, [document, widget.customRender?.keys?.toList() ?? [], widget.blacklistedElements]);
+      if (_cleanedTree == null) {
+        dom.Document document = await compute(HtmlParser.parseHTML, widget.htmlData);
+        css.StyleSheet sheet = await compute(HtmlParser.parseCSS, widget.cssData);
+        StyledElement lexedTree = await compute(HtmlParser._lexDomTree, [document, widget.customRender?.keys?.toList() ?? [], widget.blacklistedElements]);
 
-      // TODO(Sub6Resources): this could be simplified to a single recursive descent.
-      StyledElement styledTree = await compute(HtmlParser.applyCSS, [lexedTree, sheet]);
-      StyledElement inlineStyledTree = await compute(HtmlParser.applyInlineStyles, styledTree);
-      StyledElement customStyledTree = _applyCustomStyles(inlineStyledTree);
-      StyledElement cascadedStyledTree = await compute(HtmlParser._cascadeStyles, customStyledTree);
-      cleanedTree = await compute(HtmlParser.cleanTree, cascadedStyledTree);
+        // TODO(Sub6Resources): this could be simplified to a single recursive descent.
+        StyledElement styledTree = await compute(HtmlParser.applyCSS, [lexedTree, sheet]);
+        StyledElement inlineStyledTree = await compute(HtmlParser.applyInlineStyles, styledTree);
+        StyledElement customStyledTree = _applyCustomStyles(inlineStyledTree);
+        StyledElement cascadedStyledTree = await compute(HtmlParser._cascadeStyles, customStyledTree);
+        _cleanedTree = await compute(HtmlParser.cleanTree, cascadedStyledTree);
+      }
 
       parsedTree = await HtmlParser.parseTree(
         RenderContext(
@@ -742,7 +775,7 @@ class _HtmlParserState extends State<HtmlParser> {
           parser: widget,
           style: Style.fromTextStyle(Theme.of(context).textTheme.body1),
         ),
-        cleanedTree,
+        _cleanedTree,
       );
 
       print('_parseTree parsed');
@@ -758,7 +791,11 @@ class _HtmlParserState extends State<HtmlParser> {
       }
     }
 
-    return ParseResult(parsedTree, cleanedTree.style);
+    if (!_disposed) {
+      setState(() {
+        _parseResult = ParseResult(parsedTree, _cleanedTree.style);
+      });
+    }
   }
 
   /// [applyCustomStyles] applies the [Style] objects passed into the [Html]
@@ -816,7 +853,7 @@ class ContainerSpan extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext _) {
+  Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         border: style?.border,
@@ -830,7 +867,7 @@ class ContainerSpan extends StatelessWidget {
       child: child ??
           StyledText(
             textSpan: TextSpan(
-              style: newContext.style.generateTextStyle(),
+              style: newContext.style.generateTextStyle(context),
               children: children,
             ),
             style: newContext.style,
@@ -851,8 +888,8 @@ class StyledText extends StatelessWidget {
     return SizedBox(
       width: style.display == Display.BLOCK || style.display == Display.LIST_ITEM ? double.infinity : null,
       child: Text.rich(
-        style.textIndent == null || style.textIndent == 0 ? textSpan : TextSpan(children: [WidgetSpan(child: SizedBox(width: style.textIndent)), textSpan]),
-        style: style.generateTextStyle(),
+        style.textIndent == null || style.textIndent == 0 ? textSpan : TextSpan(children: [WidgetSpan(child: SizedBox(width: max(0, style.textIndent))), textSpan]),
+        style: style.generateTextStyle(context),
         textAlign: style.textAlign,
         textDirection: style.direction,
       ),
