@@ -61,6 +61,7 @@ class Html extends StatelessWidget {
     this.style,
     this.loadingPlaceholder,
     this.onContentRendered,
+    this.textScaleMultiplier,
   }) : super(key: key);
 
   final String data;
@@ -75,6 +76,7 @@ class Html extends StatelessWidget {
   final ImageErrorListener onImageError;
   final TextStyle linkStyle;
   final bool shrinkWrap;
+  final double textScaleMultiplier;
 
   /// Properties for the Image widget that gets rendered by the rich text parser
   final ImageProperties imageProperties;
@@ -140,6 +142,7 @@ class Html extends StatelessWidget {
         blacklistedElements: blacklistedElements,
         loadingPlaceholder: loadingPlaceholder,
         onContentRendered: onContentRendered,
+        textScaleMultiplier: textScaleMultiplier,
       ),
     );
   }

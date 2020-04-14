@@ -198,15 +198,13 @@ class Style {
     this.whiteSpace,
     this.width,
     this.wordSpacing,
-
     this.before,
     this.after,
     this.border,
     this.alignment,
     this.markerContent,
   }) {
-    if (this.alignment == null &&
-        (display == Display.BLOCK || display == Display.LIST_ITEM)) {
+    if (this.alignment == null && (display == Display.BLOCK || display == Display.LIST_ITEM)) {
       this.alignment = Alignment.centerLeft;
     }
   }
@@ -221,7 +219,7 @@ class Style {
       decorationThickness: textDecorationThickness,
       fontFamily: fontFamily,
       fontFeatures: fontFeatureSettings,
-      fontSize: fontSize?.size,
+      fontSize: fontSize?.size == null ? null : fontSize.size * MediaQuery.of(context).textScaleFactor,
       fontStyle: fontStyle,
       fontWeight: fontWeight,
       letterSpacing: letterSpacing,
@@ -329,7 +327,6 @@ class Style {
     WhiteSpace whiteSpace,
     double width,
     double wordSpacing,
-
     String before,
     String after,
     Border border,
@@ -363,7 +360,6 @@ class Style {
       whiteSpace: whiteSpace ?? this.whiteSpace,
       width: width ?? this.width,
       wordSpacing: wordSpacing ?? this.wordSpacing,
-
       before: before ?? this.before,
       after: after ?? this.after,
       border: border ?? this.border,

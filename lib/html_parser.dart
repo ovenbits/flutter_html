@@ -39,6 +39,7 @@ class HtmlParser extends StatefulWidget {
     this.blacklistedElements,
     this.loadingPlaceholder,
     this.onContentRendered,
+    this.textScaleMultiplier = 1.0,
   }) : super(key: key);
 
   final String htmlData;
@@ -53,6 +54,7 @@ class HtmlParser extends StatefulWidget {
   final List<String> blacklistedElements;
   final Widget loadingPlaceholder;
   final OnContentRendered onContentRendered;
+  final double textScaleMultiplier;
 
   @override
   _HtmlParserState createState() => _HtmlParserState();
@@ -639,6 +641,11 @@ class _HtmlParserState extends State<HtmlParser> {
     super.dispose();
   }
 
+//  @override
+//  void didChangeDependencies() {
+//    context.dependOnInheritedWidgetOfExactType();
+//  }
+
   @override
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
@@ -674,6 +681,7 @@ class _HtmlParserState extends State<HtmlParser> {
           key: _htmlGlobalKey,
           textSpan: _parseResult.inlineSpan,
           style: _parseResult.style,
+//          textScaleFactor: MediaQuery.of(context).textScaleFactor,
         ),
       );
     }
@@ -687,6 +695,7 @@ class _HtmlParserState extends State<HtmlParser> {
               key: _htmlGlobalKey,
               textSpan: _parseResult.inlineSpan,
               style: _parseResult.style,
+//              textScaleFactor: MediaQuery.of(context).textScaleFactor,
             ),
           ),
         AnimatedSwitcher(
@@ -786,7 +795,7 @@ class _HtmlParserState extends State<HtmlParser> {
       _renderQueue.remove(_completer);
       _completer = null;
 
-      if (_renderQueue.isNotEmpty) {
+      if (_renderQueue.isNotEmpty && !_renderQueue[0].isCompleted) {
         _renderQueue[0].complete();
       }
     }
@@ -825,11 +834,13 @@ class RenderContext {
   final BuildContext buildContext;
   final HtmlParser parser;
   final Style style;
+  final double textScaleMultiplier;
 
   RenderContext({
     this.buildContext,
     this.parser,
     this.style,
+    this.textScaleMultiplier,
   });
 }
 
@@ -877,10 +888,11 @@ class ContainerSpan extends StatelessWidget {
 }
 
 class StyledText extends StatelessWidget {
-  const StyledText({Key key, this.textSpan, this.style}) : super(key: key);
+  const StyledText({Key key, this.textSpan, this.style, this.textScaleFactor = 1.0}) : super(key: key);
 
   final InlineSpan textSpan;
   final Style style;
+  final double textScaleFactor;
 
   @override
   Widget build(BuildContext context) {
@@ -892,6 +904,7 @@ class StyledText extends StatelessWidget {
         style: style.generateTextStyle(context),
         textAlign: style.textAlign,
         textDirection: style.direction,
+        textScaleFactor: textScaleFactor,
       ),
     );
   }
