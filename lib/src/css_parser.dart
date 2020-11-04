@@ -201,7 +201,7 @@ class DeclarationVisitor extends Visitor {
         visitMarginExpression(MarginExpression(node.span, bottom: node.value));
         break;
       case 'text-indent':
-        element.style.textIndent = node.value.toDouble();
+        element.style.textIndent = node?.value?.toDouble() ?? 0;
         break;
     }
   }
@@ -223,7 +223,7 @@ class DeclarationVisitor extends Visitor {
         visitMarginExpression(MarginExpression(node.span, bottom: node.value));
         break;
       case 'text-indent':
-        element.style.textIndent = node.value.toDouble();
+        element.style.textIndent = node?.value?.toDouble() ?? 0;
         break;
     }
   }
@@ -310,7 +310,7 @@ class DeclarationVisitor extends Visitor {
   void visitPaddingExpression(PaddingExpression node) {
     // print('visitPaddingExpression(${node.span.text})');
     final box = node.box;
-    element.style.padding = EdgeInsets.fromLTRB(box.left.toDouble(), box.top.toDouble(), box.right.toDouble(), box.bottom.toDouble());
+    element.style.padding = EdgeInsets.fromLTRB(box?.left?.toDouble() ?? 0, box?.top?.toDouble() ?? 0, box?.right?.toDouble() ?? 0, box?.bottom?.toDouble() ?? 0);
   }
 
   @override
