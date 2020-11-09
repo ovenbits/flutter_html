@@ -59,6 +59,12 @@ class Style {
   /// Default: FontWeight.normal,
   FontWeight fontWeight;
 
+  /// CSS attribute "`line-height`"
+  /// 
+  /// Inherited: no,
+  /// Default: Unspecified (null),
+  double lineHeight;
+
   /// CSS attribute "`height`"
   ///
   /// Inherited: no,
@@ -181,6 +187,7 @@ class Style {
     this.fontSize,
     this.fontStyle,
     this.fontWeight,
+    this.lineHeight,
     this.height,
     this.letterSpacing,
     this.listStyleType,
@@ -222,12 +229,12 @@ class Style {
       fontSize: fontSize?.size == null ? null : fontSize.size * MediaQuery.of(context).textScaleFactor,
       fontStyle: fontStyle,
       fontWeight: fontWeight,
+      height: lineHeight,
       letterSpacing: letterSpacing,
       shadows: textShadow,
       wordSpacing: wordSpacing,
       //TODO background
       //TODO textBaseline
-      //TODO height
     );
   }
 
@@ -249,6 +256,7 @@ class Style {
       fontSize: other.fontSize,
       fontStyle: other.fontStyle,
       fontWeight: other.fontWeight,
+      lineHeight: other.lineHeight,
       height: other.height,
       letterSpacing: other.letterSpacing,
       listStyleType: other.listStyleType,
@@ -289,6 +297,7 @@ class Style {
       fontSize: child.fontSize ?? fontSize,
       fontStyle: child.fontStyle ?? fontStyle,
       fontWeight: child.fontWeight ?? fontWeight,
+      lineHeight: child.lineHeight ?? lineHeight,
       letterSpacing: child.letterSpacing ?? letterSpacing,
       listStyleType: child.listStyleType ?? listStyleType,
       textAlign: child.textAlign ?? textAlign,
@@ -310,6 +319,7 @@ class Style {
     FontSize fontSize,
     FontStyle fontStyle,
     FontWeight fontWeight,
+    double lineHeight,
     double height,
     double letterSpacing,
     ListStyleType listStyleType,
@@ -343,6 +353,7 @@ class Style {
       fontSize: fontSize ?? this.fontSize,
       fontStyle: fontStyle ?? this.fontStyle,
       fontWeight: fontWeight ?? this.fontWeight,
+      lineHeight: lineHeight ?? this.lineHeight,
       height: height ?? this.height,
       letterSpacing: letterSpacing ?? this.letterSpacing,
       listStyleType: listStyleType ?? this.listStyleType,
@@ -380,6 +391,7 @@ class Style {
     this.fontSize = FontSize(textStyle.fontSize);
     this.fontStyle = textStyle.fontStyle;
     this.fontWeight = textStyle.fontWeight;
+    this.lineHeight = textStyle.height;
     this.letterSpacing = textStyle.letterSpacing;
     this.textShadow = textStyle.shadows;
     this.wordSpacing = textStyle.wordSpacing;
