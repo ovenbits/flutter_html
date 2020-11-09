@@ -139,6 +139,12 @@ class HtmlParser extends StatefulWidget {
       tree.style = Style();
     }
 
+    // reset text/font properties to defaults
+    tree.style.textAlign = TextAlign.start;
+    tree.style.textDecoration = TextDecoration.none;
+    tree.style.textIndent = 0;
+    tree.style.fontStyle = FontStyle.normal;
+
     DeclarationVisitor(element: tree).applyDeclarations(sheet);
     tree.children?.forEach((e) => applyCSS([e, sheet]));
 
@@ -782,7 +788,7 @@ class _HtmlParserState extends State<HtmlParser> {
         RenderContext(
           buildContext: context,
           parser: widget,
-          style: Style.fromTextStyle(Theme.of(context).textTheme.body1),
+          style: Style.fromTextStyle(Theme.of(context).textTheme.bodyText2),
         ),
         _cleanedTree,
       );

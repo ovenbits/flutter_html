@@ -137,9 +137,33 @@ class DeclarationVisitor extends Visitor {
   @override
   void visitEmTerm(EmTerm node) {
     // print('visitEmTerm(${node.text})');
+    final double defaultPixelSize = FontSize.oneEm.size;
+
     switch (_currentProperty) {
       case 'font-size':
-        element.style.fontSize = FontSize(FontSize.oneEm.size * double.parse(node.text));
+        element.style.fontSize = FontSize(defaultPixelSize * double.parse(node.text));
+        break;
+      case 'line-height':
+        element.style.lineHeight = node.value.toDouble();
+        break;
+      case 'text-indent':
+        element.style.textIndent = node.value.toDouble() * defaultPixelSize;
+        break;
+      case 'margin':
+        visitMarginExpression(MarginExpression(node.span, left: node.value, right: node.value, top: node.value, bottom: node.value), isEm: true);
+        break;
+      case 'margin-left':
+        visitMarginExpression(MarginExpression(node.span, left: node.value), isEm: true);
+        break;
+      case 'margin-top':
+        visitMarginExpression(MarginExpression(node.span, top: node.value), isEm: true);
+        break;
+      case 'margin-right':
+        visitMarginExpression(MarginExpression(node.span, right: node.value), isEm: true);
+        break;
+      case 'margin-bottom':
+        visitMarginExpression(MarginExpression(node.span, bottom: node.value), isEm: true);
+        break;
     }
   }
 
@@ -162,6 +186,90 @@ class DeclarationVisitor extends Visitor {
       case 'font-style':
         _currentFontStyle = node.text;
         element.style.fontStyle = ExpressionMapping.expressionToFontStyle(node);
+        break;
+      case 'margin':
+        visitMarginExpression(MarginExpression(node.span, left: node.value, right: node.value, top: node.value, bottom: node.value));
+        break;
+      case 'margin-left':
+        visitMarginExpression(MarginExpression(node.span, left: node.value));
+        break;
+      case 'margin-top':
+        visitMarginExpression(MarginExpression(node.span, top: node.value));
+        break;
+      case 'margin-right':
+        visitMarginExpression(MarginExpression(node.span, right: node.value));
+        break;
+      case 'margin-bottom':
+        visitMarginExpression(MarginExpression(node.span, bottom: node.value));
+        break;
+      case 'font-variant':
+        if (node.value is Identifier && node.value.name.contains('small-caps')) {
+          element.style.fontFeatureSettings = [
+            FontFeature.enable('smcp'),
+          ];
+        }
+        break;
+      case 'width':
+        element.style.width = node.value.toDouble();
+        break;
+      case 'height':
+        element.style.height = node.value.toDouble();
+        break;
+      case 'font-weight':
+        if (node.value is Identifier) {
+          switch (node.value.name) {
+          case 'bold':
+            element.style.fontWeight = FontWeight.bold;
+            break;
+          case 'normal':
+            element.style.fontWeight = FontWeight.normal;
+            break;
+          case 'light':
+            element.style.fontWeight = FontWeight.w100;
+            break;
+          }
+        }
+        break;
+      case '-epub-text-align-last':
+        Identifier value = node.value;
+        switch (value.name) {
+          case 'left':
+            element.style.alignment = Alignment.centerLeft;
+            break;
+          case 'right':
+            element.style.alignment = Alignment.centerRight;
+            break;
+          case 'center':
+            element.style.alignment = Alignment.center;
+            break;
+        }
+        break;
+      case 'font-family':
+        Identifier value = node.value;
+        element.style.fontFamily = value.name;
+        break;
+      case 'text-decoration':
+        Identifier value = node.value;
+        switch (value.name) {
+          case 'line-through':
+            element.style.textDecoration = TextDecoration.lineThrough;
+            break;
+          case 'none':
+            element.style.textDecoration = TextDecoration.none;
+            break;
+          case 'overline':
+            element.style.textDecoration = TextDecoration.overline;
+            break;
+          case 'underline':
+            element.style.textDecoration = TextDecoration.underline;
+            break;
+        }
+        break;
+      case 'page-break-after':
+      case 'page-break-before':
+      case 'orphans':
+      case 'widows':
+        // TODO
         break;
     }
   }
@@ -188,6 +296,9 @@ class DeclarationVisitor extends Visitor {
     }
 
     switch (_currentProperty) {
+      case 'margin':
+        visitMarginExpression(MarginExpression(node.span, left: node.value, right: node.value, top: node.value, bottom: node.value));
+        break;
       case 'margin-left':
         visitMarginExpression(MarginExpression(node.span, left: node.value));
         break;
@@ -210,6 +321,9 @@ class DeclarationVisitor extends Visitor {
   void visitNumberTerm(NumberTerm node) {
     // print('visitNumberTerm(${node.text})');
     switch (_currentProperty) {
+      case 'margin':
+        visitMarginExpression(MarginExpression(node.span, left: node.value, right: node.value, top: node.value, bottom: node.value));
+        break;
       case 'margin-left':
         visitMarginExpression(MarginExpression(node.span, left: node.value));
         break;
@@ -222,8 +336,51 @@ class DeclarationVisitor extends Visitor {
       case 'margin-bottom':
         visitMarginExpression(MarginExpression(node.span, bottom: node.value));
         break;
+      
+      case 'padding':
+        visitPaddingExpression(PaddingExpression(node.span, left: node.value, right: node.value, top: node.value, bottom: node.value));
+        break;
+      case 'padding-left':
+        visitPaddingExpression(PaddingExpression(node.span, left: node.value));
+        break;
+      case 'padding-top':
+        visitPaddingExpression(PaddingExpression(node.span, top: node.value));
+        break;
+      case 'padding-right':
+        visitPaddingExpression(PaddingExpression(node.span, right: node.value));
+        break;
+      case 'padding-bottom':
+        visitPaddingExpression(PaddingExpression(node.span, bottom: node.value));
+        break;
+
       case 'text-indent':
         element.style.textIndent = node?.value?.toDouble() ?? 0;
+        break;
+      case 'width':
+        element.style.width = node.value.toDouble();
+        break;
+      case 'height':
+        element.style.height = node.value.toDouble();
+        break;
+      case 'line-height':
+        element.style.lineHeight = node.value.toDouble();
+        break;
+      case 'font-weight':
+        if (node is FontExpression) {
+          FontExpression expression = node.value;
+          element.style.fontWeight = ExpressionMapping.expressionToFontWeight(expression);
+        } else if (node is NumberTerm) {
+          element.style.fontWeight = ExpressionMapping.expressionToFontWeightNumberTerm(node);
+        }
+        break;
+      case 'border':
+      case 'border-bottom-width':
+      case 'border-left-width':
+      case 'border-right-width':
+      case 'border-top-width':
+      case 'orphans':
+      case 'widows':
+        // TODO
         break;
     }
   }
@@ -271,27 +428,28 @@ class DeclarationVisitor extends Visitor {
   }
 
   @override
-  void visitMarginExpression(MarginExpression node) {
+  void visitMarginExpression(MarginExpression node, {bool isEm = false}) {
     // print('visitMarginExpression(${node.box.left} ${node.box.top} ${node.box.right} ${node.box.bottom})');
     final box = node.box;
+    final multiplier = isEm ? FontSize.oneEm.size : 1.0;
 
     if (element.style.margin == null) {
-      element.style.margin = EdgeInsets.fromLTRB(box.left?.toDouble() ?? 0, box.top?.toDouble() ?? 0, box.right?.toDouble() ?? 0, box.bottom?.toDouble() ?? 0);
+      element.style.margin = EdgeInsets.fromLTRB((box.left?.toDouble() ?? 0) * multiplier, (box.top?.toDouble() ?? 0) * multiplier, (box.right?.toDouble() ?? 0) * multiplier, (box.bottom?.toDouble() ?? 0) * multiplier);
     } else {
       if (box.left != null) {
-        element.style.margin = element.style.margin.copyWith(left: box.left.toDouble());
+        element.style.margin = element.style.margin.copyWith(left: box.left.toDouble() * multiplier);
       }
 
       if (box.top != null) {
-        element.style.margin = element.style.margin.copyWith(top: box.top.toDouble());
+        element.style.margin = element.style.margin.copyWith(top: box.top.toDouble() * multiplier);
       }
 
       if (box.right != null) {
-        element.style.margin = element.style.margin.copyWith(right: box.right.toDouble());
+        element.style.margin = element.style.margin.copyWith(right: box.right.toDouble() * multiplier);
       }
 
       if (box.bottom != null) {
-        element.style.margin = element.style.margin.copyWith(bottom: box.bottom.toDouble());
+        element.style.margin = element.style.margin.copyWith(bottom: box.bottom.toDouble() * multiplier);
       }
     }
   }
@@ -353,7 +511,8 @@ class ExpressionMapping {
         case "right":
           return TextAlign.right;
         case "justify":
-          return TextAlign.justify;
+          // NOTE: TextAlign.justify causes issues with overlapped text blocks
+          return TextAlign.left;
         case "end":
           return TextAlign.end;
         case "start":
@@ -406,6 +565,7 @@ class ExpressionMapping {
           return Display.LIST_ITEM;
       }
     }
+    return Display.BLOCK;
   }
 
   static FontStyle expressionToFontStyle(Expression value) {
@@ -419,6 +579,7 @@ class ExpressionMapping {
           return FontStyle.italic;
       }
     }
+    return FontStyle.normal;
   }
 
   static FontWeight expressionToFontWeight(FontExpression value) {
@@ -444,6 +605,32 @@ class ExpressionMapping {
           return FontWeight.w900;
       }
     }
+    return FontWeight.normal;
+  }
+
+  static FontWeight expressionToFontWeightNumberTerm(NumberTerm value) {
+    switch (value.text) {
+      case '100':
+        return FontWeight.w100;
+      case '200':
+        return FontWeight.w200;
+      case '300':
+        return FontWeight.w300;
+      case '400':
+        return FontWeight.w400;
+      case '500':
+        return FontWeight.w500;
+      case '600':
+        return FontWeight.w600;
+      case '700':
+        return FontWeight.w700;
+      case '800':
+        return FontWeight.w800;
+      case '900':
+        return FontWeight.w900;
+      default:
+        return FontWeight.normal;
+    }
   }
 
   static TextTransform expressionToTextTransform(Expression value) {
@@ -459,6 +646,7 @@ class ExpressionMapping {
           return TextTransform.lowercase;
       }
     }
+    return TextTransform.none;
   }
 
   static String expressionToFontFamily(Expression value) {
