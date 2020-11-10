@@ -231,8 +231,14 @@ class DeclarationVisitor extends Visitor {
         }
         break;
       case '-epub-text-align-last':
-        Identifier value = node.value;
-        switch (value.name) {
+        String alignment;
+        if (node.value is Identifier) {
+          Identifier value = node.value;
+          alignment = value.name;
+        } else {
+          alignment = node.text;
+        }
+        switch (alignment) {
           case 'left':
             element.style.alignment = Alignment.centerLeft;
             break;
@@ -245,12 +251,24 @@ class DeclarationVisitor extends Visitor {
         }
         break;
       case 'font-family':
-        Identifier value = node.value;
-        element.style.fontFamily = value.name;
+        String fontFamily;
+        if (node.value is Identifier) {
+          Identifier value = node.value;
+          fontFamily = value.name;
+        } else {
+          fontFamily = node.text;
+        }
+        element.style.fontFamily = fontFamily;
         break;
       case 'text-decoration':
-        Identifier value = node.value;
-        switch (value.name) {
+        String textDecoration;
+        if (node.value is Identifier) {
+          Identifier value = node.value;
+          textDecoration = value.name;
+        } else {
+          textDecoration = node.text;
+        }
+        switch (textDecoration) {
           case 'line-through':
             element.style.textDecoration = TextDecoration.lineThrough;
             break;
