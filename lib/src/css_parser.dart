@@ -210,10 +210,18 @@ class DeclarationVisitor extends Visitor {
         }
         break;
       case 'width':
-        element.style.width = node.value.toDouble();
+        if (node.value is Identifier) {
+          // 'auto' keyword is unsupported
+        } else {
+          element.style.width = node.value.toDouble();
+        }
         break;
       case 'height':
-        element.style.height = node.value.toDouble();
+        if (node.value is Identifier) {
+          // 'auto' keyword is unsupported
+        } else {
+          element.style.height = node.value.toDouble();
+        }
         break;
       case 'font-weight':
         if (node.value is Identifier) {
