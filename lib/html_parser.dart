@@ -662,7 +662,11 @@ class _HtmlParserState extends State<HtmlParser> {
 //    }
 
     if (_parseResult == null) {
-      _parseTree(context);
+      try {
+        _parseTree(context);
+      } catch (error) {
+        print(error);
+      }
     }
 
     if (_parseResult != null && _isOffstage) {
