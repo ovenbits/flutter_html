@@ -144,10 +144,10 @@ class DeclarationVisitor extends Visitor {
         element.style.fontSize = FontSize(defaultPixelSize * double.parse(node.text));
         break;
       case 'line-height':
-        element.style.lineHeight = node.value.toDouble();
+        element.style.lineHeight = node?.value?.toDouble() ?? 0;
         break;
       case 'text-indent':
-        element.style.textIndent = node.value.toDouble() * defaultPixelSize;
+        element.style.textIndent = (node?.value?.toDouble() ?? 0) * defaultPixelSize;
         break;
       case 'margin':
         visitMarginExpression(MarginExpression(node.span, left: node.value, right: node.value, top: node.value, bottom: node.value), isEm: true);
@@ -188,19 +188,39 @@ class DeclarationVisitor extends Visitor {
         element.style.fontStyle = ExpressionMapping.expressionToFontStyle(node);
         break;
       case 'margin':
-        visitMarginExpression(MarginExpression(node.span, left: node.value, right: node.value, top: node.value, bottom: node.value));
+        if (node.value is Identifier) {
+          // 'auto' keyword is unsupported
+        } else {
+          visitMarginExpression(MarginExpression(node.span, left: node.value, right: node.value, top: node.value, bottom: node.value));
+        }
         break;
       case 'margin-left':
-        visitMarginExpression(MarginExpression(node.span, left: node.value));
+        if (node.value is Identifier) {
+          // 'auto' keyword is unsupported
+        } else {
+          visitMarginExpression(MarginExpression(node.span, left: node.value));
+        }
         break;
       case 'margin-top':
-        visitMarginExpression(MarginExpression(node.span, top: node.value));
+        if (node.value is Identifier) {
+          // 'auto' keyword is unsupported
+        } else {
+          visitMarginExpression(MarginExpression(node.span, top: node.value));
+        }
         break;
       case 'margin-right':
-        visitMarginExpression(MarginExpression(node.span, right: node.value));
+        if (node.value is Identifier) {
+          // 'auto' keyword is unsupported
+        } else {
+          visitMarginExpression(MarginExpression(node.span, right: node.value));
+        }
         break;
       case 'margin-bottom':
-        visitMarginExpression(MarginExpression(node.span, bottom: node.value));
+        if (node.value is Identifier) {
+          // 'auto' keyword is unsupported
+        } else {
+          visitMarginExpression(MarginExpression(node.span, bottom: node.value));
+        }
         break;
       case 'font-variant':
         if (node.value is Identifier && node.value.name.contains('small-caps')) {
@@ -213,14 +233,14 @@ class DeclarationVisitor extends Visitor {
         if (node.value is Identifier) {
           // 'auto' keyword is unsupported
         } else {
-          element.style.width = node.value.toDouble();
+          element.style.width = node?.value?.toDouble() ?? 0;
         }
         break;
       case 'height':
         if (node.value is Identifier) {
           // 'auto' keyword is unsupported
         } else {
-          element.style.height = node.value.toDouble();
+          element.style.height = node?.value?.toDouble() ?? 0;
         }
         break;
       case 'font-weight':
@@ -383,13 +403,13 @@ class DeclarationVisitor extends Visitor {
         element.style.textIndent = node?.value?.toDouble() ?? 0;
         break;
       case 'width':
-        element.style.width = node.value.toDouble();
+        element.style.width = node?.value?.toDouble() ?? 0;
         break;
       case 'height':
-        element.style.height = node.value.toDouble();
+        element.style.height = node?.value?.toDouble() ?? 0;
         break;
       case 'line-height':
-        element.style.lineHeight = node.value.toDouble();
+        element.style.lineHeight = node?.value?.toDouble() ?? 0;
         break;
       case 'font-weight':
         if (node is FontExpression) {
