@@ -276,6 +276,8 @@ class HtmlParser extends StatefulWidget {
         );
       }
     } else if (tree is InteractableElement) {
+      final List<InlineSpan> children = await Future.wait(tree.children.map((tree) => parseTree(newContext, tree)).toList());
+
       return WidgetSpan(
         child: RawGestureDetector(
           gestures: {
@@ -286,12 +288,14 @@ class HtmlParser extends StatefulWidget {
               },
             ),
           },
-          child: StyledText(
-            textSpan: TextSpan(
-              style: newContext.style.generateTextStyle(context.buildContext),
-              children: await Future.wait(tree.children.map((tree) => parseTree(newContext, tree)).toList() ?? []),
+          child: Builder(
+            builder: (context) => StyledText(
+              textSpan: TextSpan(
+                style: newContext.style.generateTextStyle(context),
+                children: children,
+              ),
+              style: newContext.style,
             ),
-            style: newContext.style,
           ),
         ),
       );
