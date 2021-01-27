@@ -228,7 +228,7 @@ class HtmlParser extends StatefulWidget {
       );
     }
 
-    //Return the correct InlineSpan based on the element type.
+    // Return the correct InlineSpan based on the element type.
     if (tree.style?.display == Display.BLOCK) {
       return WidgetSpan(
         child: ContainerSpan(
@@ -239,29 +239,33 @@ class HtmlParser extends StatefulWidget {
         ),
       );
     } else if (tree.style?.display == Display.LIST_ITEM) {
+      final List<InlineSpan> children = await Future.wait(tree.children.map((tree) => parseTree(newContext, tree)).toList());
+
       return WidgetSpan(
         child: ContainerSpan(
           newContext: newContext,
           style: tree.style,
           shrinkWrap: context.parser.shrinkWrap,
-          child: Stack(
-            children: <Widget>[
-              PositionedDirectional(
-                width: 30, //TODO derive this from list padding.
-                start: 0,
-                child: Text('${newContext.style.markerContent}\t', textAlign: TextAlign.right, style: newContext.style.generateTextStyle(context.buildContext)),
-              ),
-              Padding(
-                padding: EdgeInsets.only(left: 30), //TODO derive this from list padding.
-                child: StyledText(
-                  textSpan: TextSpan(
-                    children: await Future.wait(tree.children?.map((tree) => parseTree(newContext, tree))?.toList() ?? []),
-                    style: newContext.style.generateTextStyle(context.buildContext),
-                  ),
-                  style: newContext.style,
+          child: Builder(
+            builder: (context) => Stack(
+              children: <Widget>[
+                PositionedDirectional(
+                  width: 30, //TODO derive this from list padding.
+                  start: 0,
+                  child: Text('${newContext.style.markerContent}\t', textAlign: TextAlign.right, style: newContext.style.generateTextStyle(context)),
                 ),
-              )
-            ],
+                Padding(
+                  padding: EdgeInsets.only(left: 30), //TODO derive this from list padding.
+                  child: StyledText(
+                    textSpan: TextSpan(
+                      children: children,
+                      style: newContext.style.generateTextStyle(context),
+                    ),
+                    style: newContext.style,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -272,7 +276,7 @@ class HtmlParser extends StatefulWidget {
         return WidgetSpan(
           alignment: tree.alignment,
           baseline: TextBaseline.alphabetic,
-          child: tree.toWidget(context),
+          child: Builder(builder: (buildContext) => tree.toWidget(context)),
         );
       }
     } else if (tree is InteractableElement) {
@@ -304,6 +308,7 @@ class HtmlParser extends StatefulWidget {
         child: await tree.toWidget(context),
       );
     } else if (tree.style.verticalAlign != null && tree.style.verticalAlign != VerticalAlign.BASELINE) {
+      final List<InlineSpan> children = await Future.wait(tree.children.map((tree) => parseTree(newContext, tree)).toList());
       double verticalOffset;
       switch (tree.style.verticalAlign) {
         case VerticalAlign.SUB:
@@ -319,12 +324,14 @@ class HtmlParser extends StatefulWidget {
       return WidgetSpan(
         child: Transform.translate(
           offset: Offset(0, verticalOffset),
-          child: StyledText(
-            textSpan: TextSpan(
-              style: newContext.style.generateTextStyle(context.buildContext),
-              children: await Future.wait(tree.children.map((tree) => parseTree(newContext, tree)).toList() ?? []),
+          child: Builder(
+            builder: (context) => StyledText(
+              textSpan: TextSpan(
+                style: newContext.style.generateTextStyle(context),
+                children: children,
+              ),
+              style: newContext.style,
             ),
-            style: newContext.style,
           ),
         ),
       );
@@ -879,24 +886,26 @@ class ContainerSpan extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        border: style?.border,
-        color: style?.backgroundColor,
-      ),
-      height: style?.height,
-      width: style?.width,
-      padding: style?.padding,
-      margin: style?.margin,
-      alignment: shrinkWrap ? null : style?.alignment,
-      child: child ??
-          StyledText(
-            textSpan: TextSpan(
-              style: newContext.style.generateTextStyle(context),
-              children: children,
+    return Builder(
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          border: style?.border,
+          color: style?.backgroundColor,
+        ),
+        height: style?.height,
+        width: style?.width,
+        padding: style?.padding,
+        margin: style?.margin,
+        alignment: shrinkWrap ? null : style?.alignment,
+        child: child ??
+            StyledText(
+              style: newContext.style,
+              textSpan: TextSpan(
+                style: newContext.style.generateTextStyle(context),
+                children: children,
+              ),
             ),
-            style: newContext.style,
-          ),
+      ),
     );
   }
 }

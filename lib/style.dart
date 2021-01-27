@@ -219,7 +219,7 @@ class Style {
   TextStyle generateTextStyle(BuildContext context) {
     return TextStyle(
       backgroundColor: backgroundColor,
-      color: Theme.of(context).brightness == Brightness.light ? color : Colors.white, // TODO make this smarter
+      color: Theme.of(context).brightness == Brightness.light ? (color == Colors.white ? Colors.black : color) : Colors.white, // TODO make this smarter
       decoration: textDecoration,
       decorationColor: textDecorationColor,
       decorationStyle: textDecorationStyle,
