@@ -107,7 +107,7 @@ class Html extends StatelessWidget {
         color: backgroundColor,
         width: width,
         child: DefaultTextStyle.merge(
-          style: defaultTextStyle ?? Theme.of(context).textTheme.body1,
+          style: defaultTextStyle ?? Theme.of(context).textTheme.bodyText2,
           child: HtmlRichTextParser(
             shrinkToFit: shrinkWrap,
             onLinkTap: onLinkTap,
