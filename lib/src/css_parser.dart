@@ -95,7 +95,7 @@ class DeclarationVisitor extends Visitor {
   String _currentFontStyle;
 
   DeclarationVisitor({this.element, this.isInline = false}) {
-  // print('\nDeclarationVisitor(<${element?.name} id="${element?.elementId}" class="${element?.elementClasses?.join(' ')}" ${element?.attributes?.entries?.map((entry) => '[${entry.key}=${entry.value}]')?.join(' ')}');
+    // print('\nDeclarationVisitor(<${element?.name} id="${element?.elementId}" class="${element?.elementClasses?.join(' ')}" ${element?.attributes?.entries?.map((entry) => '[${entry.key}=${entry.value}]')?.join(' ')}');
   }
 
   void applyDeclarations(StyleSheet sheet) {
@@ -246,15 +246,15 @@ class DeclarationVisitor extends Visitor {
       case 'font-weight':
         if (node.value is Identifier) {
           switch (node.value.name) {
-          case 'bold':
-            element.style.fontWeight = FontWeight.bold;
-            break;
-          case 'normal':
-            element.style.fontWeight = FontWeight.normal;
-            break;
-          case 'light':
-            element.style.fontWeight = FontWeight.w100;
-            break;
+            case 'bold':
+              element.style.fontWeight = FontWeight.bold;
+              break;
+            case 'normal':
+              element.style.fontWeight = FontWeight.normal;
+              break;
+            case 'light':
+              element.style.fontWeight = FontWeight.w100;
+              break;
           }
         }
         break;
@@ -310,6 +310,9 @@ class DeclarationVisitor extends Visitor {
             element.style.textDecoration = TextDecoration.underline;
             break;
         }
+        break;
+      case 'vertical-align':
+        element.style.verticalAlign = ExpressionMapping.expressionToVerticalAlignTerm(node);
         break;
       case 'page-break-after':
       case 'page-break-before':
@@ -382,7 +385,6 @@ class DeclarationVisitor extends Visitor {
       case 'margin-bottom':
         visitMarginExpression(MarginExpression(node.span, bottom: node.value));
         break;
-      
       case 'padding':
         visitPaddingExpression(PaddingExpression(node.span, left: node.value, right: node.value, top: node.value, bottom: node.value));
         break;
@@ -703,5 +705,18 @@ class ExpressionMapping {
       // print('expressionToFontFamily(${value.span.text})');
       return value.span.text;
     }
+  }
+
+  static VerticalAlign expressionToVerticalAlignTerm(LiteralTerm value) {
+    switch (value.text) {
+      case 'sub':
+        return VerticalAlign.SUB;
+      case 'super':
+        return VerticalAlign.SUPER;
+      case 'baseline':
+        return VerticalAlign.BASELINE;
+    }
+
+    return VerticalAlign.BASELINE;
   }
 }
