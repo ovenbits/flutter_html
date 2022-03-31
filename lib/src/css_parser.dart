@@ -88,6 +88,8 @@ class FontFaceDirectiveVisitor extends Visitor {
 }
 
 class DeclarationVisitor extends Visitor {
+  static final _leadingOrTrailingQuoteRegexp = RegExp(r'^"|"$');
+
   final StyledElement element;
   final bool isInline;
   final List<FontFaceDirective> _fontFaceDirectives = [];
@@ -447,7 +449,7 @@ class DeclarationVisitor extends Visitor {
   void visitFontExpression(FontExpression node) {
     // print('visitFontExpression(${node.span.text})');
     if (node.font.family?.isNotEmpty == true) {
-      element.style.fontFamily = node.font.family.first;
+      element.style.fontFamily = node.font.family.first?.replaceAll(_leadingOrTrailingQuoteRegexp, '');
     }
     element.style.fontWeight = ExpressionMapping.expressionToFontWeight(node);
 
