@@ -309,13 +309,14 @@ class HtmlParser extends StatefulWidget {
       );
     } else if (tree.style.verticalAlign != null && tree.style.verticalAlign != VerticalAlign.BASELINE) {
       final List<InlineSpan> children = await Future.wait(tree.children.map((tree) => parseTree(newContext, tree)).toList());
-      double verticalOffset;
+      double verticalOffset = 0;
+      double parentFontSize = tree.style?.fontSize?.size ?? FontSize.medium.size;
       switch (tree.style.verticalAlign) {
         case VerticalAlign.SUB:
-          verticalOffset = tree.style.fontSize.size / 2.5;
+          verticalOffset = parentFontSize / 2.5;
           break;
         case VerticalAlign.SUPER:
-          verticalOffset = tree.style.fontSize.size / -2.5;
+          verticalOffset = parentFontSize / -2.5;
           break;
         default:
           break;
@@ -471,7 +472,6 @@ class HtmlParser extends StatefulWidget {
   /// (3) Replace all tabs with a space
   /// (4) Replace any instances of two or more spaces with a single space.
   static String _removeUnnecessaryWhitespace(String text) {
-    print('"$text"');
     return text
         .replaceAll(RegExp("\ *(?=\n)"), "\n")
         .replaceAll(RegExp("(?:\n)\ *"), "\n")
