@@ -438,26 +438,6 @@ CustomRender fallbackRender({Style? style, List<InlineSpan>? children}) =>
           .toList(),
 ));
 
-// CustomRender fallbackRender({Style? style, List<InlineSpan>? children}) => CustomRender.inlineSpan(
-//       inlineSpan: (renderContext, buildChildren) => WidgetSpan(
-//         child: Builder(
-//           builder: (context) => StyledText(
-//             renderContext: renderContext,
-//             style: renderContext.style,
-//             textSpan: TextSpan(
-//               style: style?.generateTextStyle(context) ?? renderContext.style.generateTextStyle(context),
-//               children: renderContext.tree.children
-//                   .expand((tree) => [
-//                         renderContext.parser.parseTree(renderContext, tree),
-//                         if (tree.style.display == Display.BLOCK && tree.element?.parent?.localName != "th" && tree.element?.parent?.localName != "td" && tree.element?.localName != "html" && tree.element?.localName != "body") TextSpan(text: "\n"),
-//                       ])
-//                   .toList(),
-//             ),
-//           ),
-//         ),
-//       ),
-//     );
-
 final Map<CustomRenderMatcher, CustomRender> defaultRenders = {
   blockElementMatcher(): blockElementRender(),
   listElementMatcher(): listElementRender(),

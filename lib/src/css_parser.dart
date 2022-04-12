@@ -192,6 +192,22 @@ Style declarationsToStyle(Map<String, List<css.Expression>> declarations) {
         case 'font-weight':
           style.fontWeight = ExpressionMapping.expressionToFontWeight(value.first);
           break;
+        case '-epub-text-align-last':
+          if (value.first is css.Identifier) {
+            css.Identifier identifier = value.first as css.Identifier;
+            switch (identifier.name) {
+              case 'left':
+                style.alignment = Alignment.centerLeft;
+                break;
+              case 'right':
+                style.alignment = Alignment.centerRight;
+                break;
+              case 'center':
+                style.alignment = Alignment.center;
+                break;
+            }
+          }
+          break;
         case 'list-style':
           css.LiteralTerm? position = value.firstWhereOrNull((e) => e is css.LiteralTerm && (e.text == "outside" || e.text == "inside")) as css.LiteralTerm?;
           css.UriTerm? image = value.firstWhereOrNull((e) => e is css.UriTerm) as css.UriTerm?;
@@ -348,6 +364,9 @@ Style declarationsToStyle(Map<String, List<css.Expression>> declarations) {
             style.textTransform = TextTransform.none;
           }
           break;
+        case 'vertical-align':
+          style.verticalAlign = ExpressionMapping.expressionToVerticalAlignTerm((value.first as css.LiteralTerm));
+          break;
         case 'width':
           style.width = ExpressionMapping.expressionToPaddingLength(value.first) ?? style.width;
           break;
@@ -433,6 +452,7 @@ class DeclarationVisitor extends css.Visitor {
 
 //Mapping functions
 class ExpressionMapping {
+  static final _leadingOrTrailingQuoteRegexp = RegExp(r'^"|"$');
 
   static Border expressionToBorder(List<css.Expression?>? borderWidths, List<css.LiteralTerm?>? borderStyles, List<css.Expression?>? borderColors) {
     CustomBorderSide left = CustomBorderSide();
@@ -698,8 +718,11 @@ class ExpressionMapping {
   }
 
   static String? expressionToFontFamily(css.Expression value) {
-    if (value is css.LiteralTerm) return value.text;
-    return null;
+    if (value is css.LiteralTerm) {
+      return value.text.replaceAll(_leadingOrTrailingQuoteRegexp, '');
+    } else {
+      return value.span?.text.replaceAll(_leadingOrTrailingQuoteRegexp, '');
+    }
   }
 
   static LineHeight expressionToLineHeight(css.Expression value) {
@@ -977,5 +1000,18 @@ class ExpressionMapping {
      if (namedColor != "") {
        return stringToColor(namedColors[namedColor]!);
      } else return null;
+  }
+
+  static VerticalAlign expressionToVerticalAlignTerm(css.LiteralTerm value) {
+    switch (value.text) {
+      case 'sub':
+        return VerticalAlign.SUB;
+      case 'super':
+        return VerticalAlign.SUPER;
+      case 'baseline':
+        return VerticalAlign.BASELINE;
+    }
+
+    return VerticalAlign.BASELINE;
   }
 }

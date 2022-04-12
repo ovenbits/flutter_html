@@ -782,7 +782,6 @@ class _HtmlParserState extends State<HtmlParser> {
   bool _isOffstage = true;
   ParseResult? _parseResult;
 
-  ThemeData? _themeData;
   InlineSpan? _parsedTree;
   StyledElement? _cleanedTree;
   bool _disposed = false;
@@ -984,15 +983,6 @@ class _HtmlParserState extends State<HtmlParser> {
           _cleanedTree!,
         );
       }
-
-      // parsedTree = await parseTree(
-      //   RenderContext(
-      //     buildContext: context,
-      //     parser: widget,
-      //     style: Style.fromTextStyle(Theme.of(context).textTheme.bodyText2),
-      //   ),
-      //   _cleanedTree,
-      // );
 
       print('_parseTree parsed');
     } catch (exception) {
