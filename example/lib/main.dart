@@ -274,7 +274,7 @@ class _MyHomePageState extends State<MyHomePage> {
             tagMatcher("tex"): CustomRender.widget(widget: (context, buildChildren) => Math.tex(
               context.tree.element?.innerHtml ?? '',
               mathStyle: MathStyle.display,
-              textStyle: context.style.generateTextStyle(),
+              textStyle: context.style.generateTextStyle(context.buildContext),
               onErrorFallback: (FlutterMathException e) {
                 return Text(e.message);
               },

@@ -148,7 +148,7 @@ class DetailsContentElement extends LayoutElement {
         expandedAlignment: Alignment.centerLeft,
         title: elementList.isNotEmpty == true && elementList.first.localName == "summary" ? StyledText(
           textSpan: TextSpan(
-            style: style.generateTextStyle(),
+            style: style.generateTextStyle(context.buildContext),
             children: firstChild == null ? [] : [firstChild],
           ),
           style: style,
@@ -157,7 +157,7 @@ class DetailsContentElement extends LayoutElement {
         children: [
           StyledText(
             textSpan: TextSpan(
-              style: style.generateTextStyle(),
+              style: style.generateTextStyle(context.buildContext),
               children: getChildren(childrenList, context, elementList.isNotEmpty == true && elementList.first.localName == "summary" ? firstChild : null)
             ),
             style: style,

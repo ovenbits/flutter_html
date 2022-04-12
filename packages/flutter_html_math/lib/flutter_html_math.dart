@@ -12,7 +12,7 @@ CustomRender mathRender({OnMathError? onMathError}) => CustomRender.widget(widge
       child: Math.tex(
         texStr,
         mathStyle: MathStyle.display,
-        textStyle: context.style.generateTextStyle(),
+        textStyle: context.style.generateTextStyle(context.buildContext),
         onErrorFallback: (FlutterMathException e) {
           if (onMathError != null) {
             return onMathError.call(texStr, e.message, e.messageWithType);

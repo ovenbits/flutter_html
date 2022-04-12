@@ -254,10 +254,10 @@ class Style {
     return styleMap;
   }
 
-  TextStyle generateTextStyle() {
+  TextStyle generateTextStyle(BuildContext context) {
     return TextStyle(
       backgroundColor: backgroundColor,
-      color: color,
+      color: Theme.of(context).brightness == Brightness.light ? (color == Colors.white ? Colors.black : color) : Colors.white, // TODO make this smarter,
       decoration: textDecoration,
       decorationColor: textDecorationColor,
       decorationStyle: textDecorationStyle,

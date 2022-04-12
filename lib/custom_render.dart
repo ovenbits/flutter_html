@@ -108,7 +108,7 @@ CustomRender blockElementRender({
     CustomRender.inlineSpan(inlineSpan: (context, buildChildren) {
         if (context.parser.selectable) {
           return TextSpan(
-            style: context.style.generateTextStyle(),
+            style: context.style.generateTextStyle(context.buildContext),
             children: (children as List<TextSpan>?) ?? context.tree.children
                 .expandIndexed((i, childTree) => [
               if (childTree.style.display == Display.BLOCK &&
@@ -186,7 +186,7 @@ CustomRender listElementRender({
                             [
                               WidgetSpan(alignment: PlaceholderAlignment.middle, child: style?.markerContent ?? context.style.markerContent ?? Container(height: 0, width: 0))
                             ] : []),
-                            style: style?.generateTextStyle() ?? context.style.generateTextStyle(),
+                            style: style?.generateTextStyle(context.buildContext) ?? context.style.generateTextStyle(context.buildContext),
                           ),
                           style: style ?? context.style,
                           renderContext: context,
@@ -222,7 +222,7 @@ CustomRender base64ImageRender() => CustomRender.widget(widget: (context, buildC
     decodedImage,
     frameBuilder: (ctx, child, frame, _) {
       if (frame == null) {
-        return Text(_alt(context.tree.element!.attributes.cast()) ?? "", style: context.style.generateTextStyle());
+        return Text(_alt(context.tree.element!.attributes.cast()) ?? "", style: context.style.generateTextStyle(context.buildContext));
       }
       return child;
     },
@@ -259,7 +259,7 @@ CustomRender assetImageRender({
     height: height ?? _height(context.tree.element!.attributes.cast()),
     frameBuilder: (ctx, child, frame, _) {
       if (frame == null) {
-        return Text(_alt(context.tree.element!.attributes.cast()) ?? "", style: context.style.generateTextStyle());
+        return Text(_alt(context.tree.element!.attributes.cast()) ?? "", style: context.style.generateTextStyle(context.buildContext));
       }
       return child;
     },
@@ -351,7 +351,7 @@ CustomRender networkImageRender({
                 if (frame == null) {
                   return altWidget?.call(_alt(attributes)) ??
                       Text(_alt(attributes) ?? "",
-                          style: context.style.generateTextStyle());
+                          style: context.style.generateTextStyle(context.buildContext));
                 }
                 return child;
               },
@@ -361,7 +361,7 @@ CustomRender networkImageRender({
       } else if (snapshot.hasError) {
         return altWidget?.call(_alt(context.tree.element!.attributes.cast())) ??
             Text(_alt(context.tree.element!.attributes.cast())
-                ?? "", style: context.style.generateTextStyle());
+                ?? "", style: context.style.generateTextStyle(context.buildContext));
       } else {
         return loadingWidget?.call() ?? const CircularProgressIndicator();
       }
@@ -394,7 +394,7 @@ CustomRender interactableElementRender({List<InlineSpan>? children}) =>
       .map((tree) => context.parser.parseTree(context, tree))
       .map((childSpan) {
     return _getInteractableChildren(context, context.tree as InteractableElement, childSpan,
-        context.style.generateTextStyle().merge(childSpan.style));
+        context.style.generateTextStyle(context.buildContext).merge(childSpan.style));
   }).toList(),
 ));
 
@@ -413,7 +413,7 @@ CustomRender verticalAlignRender({
     offset: Offset(0, verticalOffset ?? _getVerticalOffset(context.tree)),
     child: StyledText(
       textSpan: TextSpan(
-        style: style?.generateTextStyle() ?? context.style.generateTextStyle(),
+        style: style?.generateTextStyle(context.buildContext) ?? context.style.generateTextStyle(context.buildContext),
         children: children ?? buildChildren.call(),
       ),
       style: context.style,
@@ -424,7 +424,7 @@ CustomRender verticalAlignRender({
 
 CustomRender fallbackRender({Style? style, List<InlineSpan>? children}) =>
     CustomRender.inlineSpan(inlineSpan: (context, buildChildren) => TextSpan(
-      style: style?.generateTextStyle() ?? context.style.generateTextStyle(),
+      style: style?.generateTextStyle(context.buildContext) ?? context.style.generateTextStyle(context.buildContext),
       children: context.tree.children
           .expand((tree) => [
         context.parser.parseTree(context, tree),
@@ -437,6 +437,26 @@ CustomRender fallbackRender({Style? style, List<InlineSpan>? children}) =>
       ])
           .toList(),
 ));
+
+// CustomRender fallbackRender({Style? style, List<InlineSpan>? children}) => CustomRender.inlineSpan(
+//       inlineSpan: (renderContext, buildChildren) => WidgetSpan(
+//         child: Builder(
+//           builder: (context) => StyledText(
+//             renderContext: renderContext,
+//             style: renderContext.style,
+//             textSpan: TextSpan(
+//               style: style?.generateTextStyle(context) ?? renderContext.style.generateTextStyle(context),
+//               children: renderContext.tree.children
+//                   .expand((tree) => [
+//                         renderContext.parser.parseTree(renderContext, tree),
+//                         if (tree.style.display == Display.BLOCK && tree.element?.parent?.localName != "th" && tree.element?.parent?.localName != "td" && tree.element?.localName != "html" && tree.element?.localName != "body") TextSpan(text: "\n"),
+//                       ])
+//                   .toList(),
+//             ),
+//           ),
+//         ),
+//       ),
+//     );
 
 final Map<CustomRenderMatcher, CustomRender> defaultRenders = {
   blockElementMatcher(): blockElementRender(),
@@ -470,7 +490,7 @@ InlineSpan _getInteractableChildren(RenderContext context, InteractableElement t
       children: childSpan.children
           ?.map((e) => _getInteractableChildren(context, tree, e, childStyle.merge(childSpan.style)))
           .toList(),
-      style: context.style.generateTextStyle().merge(
+      style: context.style.generateTextStyle(context.buildContext).merge(
           childSpan.style == null
               ? childStyle
               : childStyle.merge(childSpan.style)),

@@ -9,15 +9,18 @@ import 'package:html/dom.dart' as dom;
 
 //export render context api
 export 'package:flutter_html/html_parser.dart';
+
 //export render context api
 export 'package:flutter_html/html_parser.dart';
 export 'package:flutter_html/custom_render.dart';
+
 //export src for advanced custom render uses (e.g. casting context.tree)
 export 'package:flutter_html/src/anchor.dart';
 export 'package:flutter_html/src/interactable_element.dart';
 export 'package:flutter_html/src/layout_element.dart';
 export 'package:flutter_html/src/replaced_element.dart';
 export 'package:flutter_html/src/styled_element.dart';
+
 //export style api
 export 'package:flutter_html/style.dart';
 
@@ -60,8 +63,11 @@ class Html extends StatefulWidget {
     this.onImageTap,
     this.tagsList = const [],
     this.style = const {},
-  }) : documentElement = null,
-        assert (data != null),
+    this.loadingPlaceholder,
+    this.onContentRendered,
+    this.textScaleFactor,
+  })  : documentElement = null,
+        assert(data != null),
         _anchorKey = anchorKey ?? GlobalKey(),
         super(key: key);
 
@@ -78,7 +84,10 @@ class Html extends StatefulWidget {
     this.onImageTap,
     this.tagsList = const [],
     this.style = const {},
-  }) : data = null,
+    this.loadingPlaceholder,
+    this.onContentRendered,
+    this.textScaleFactor,
+  })  : data = null,
         assert(document != null),
         this.documentElement = document!.documentElement,
         _anchorKey = anchorKey ?? GlobalKey(),
@@ -97,7 +106,10 @@ class Html extends StatefulWidget {
     this.onImageTap,
     this.tagsList = const [],
     this.style = const {},
-  }) : data = null,
+    this.loadingPlaceholder,
+    this.onContentRendered,
+    this.textScaleFactor,
+  })  : data = null,
         assert(documentElement != null),
         _anchorKey = anchorKey ?? GlobalKey(),
         super(key: key);
@@ -141,6 +153,10 @@ class Html extends StatefulWidget {
   /// An API that allows you to override the default style for any HTML element
   final Map<String, Style> style;
 
+  final Widget? loadingPlaceholder;
+  final OnContentRendered? onContentRendered;
+  final double? textScaleFactor;
+
   static List<String> get tags => new List<String>.from(STYLED_ELEMENTS)
     ..addAll(INTERACTABLE_ELEMENTS)
     ..addAll(REPLACED_ELEMENTS)
@@ -159,8 +175,7 @@ class _HtmlState extends State<Html> {
   @override
   void initState() {
     super.initState();
-    documentElement =
-    widget.data != null ? HtmlParser.parseHTML(widget.data!) : widget.documentElement!;
+    documentElement = widget.data != null ? HtmlParser.parseHTML(widget.data!) : widget.documentElement!;
   }
 
   @override
@@ -182,6 +197,9 @@ class _HtmlState extends State<Html> {
           ..addAll(widget.customRenders)
           ..addAll(defaultRenders),
         tagsList: widget.tagsList.isEmpty ? Html.tags : widget.tagsList,
+        loadingPlaceholder: widget.loadingPlaceholder,
+        onContentRendered: widget.onContentRendered,
+        textScaleFactor: widget.textScaleFactor,
       ),
     );
   }
@@ -232,7 +250,7 @@ class SelectableHtml extends StatefulWidget {
     this.tagsList = const [],
     this.selectionControls,
     this.scrollPhysics,
-  }) : documentElement = null,
+  })  : documentElement = null,
         assert(data != null),
         _anchorKey = anchorKey ?? GlobalKey(),
         super(key: key);
@@ -250,7 +268,7 @@ class SelectableHtml extends StatefulWidget {
     this.tagsList = const [],
     this.selectionControls,
     this.scrollPhysics,
-  }) : data = null,
+  })  : data = null,
         assert(document != null),
         this.documentElement = document!.documentElement,
         _anchorKey = anchorKey ?? GlobalKey(),
@@ -269,7 +287,7 @@ class SelectableHtml extends StatefulWidget {
     this.tagsList = const [],
     this.selectionControls,
     this.scrollPhysics,
-  }) : data = null,
+  })  : data = null,
         assert(documentElement != null),
         _anchorKey = anchorKey ?? GlobalKey(),
         super(key: key);

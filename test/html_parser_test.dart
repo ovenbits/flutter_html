@@ -3,8 +3,7 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets("Check that default parser does not fail on empty data",
-      (tester) async {
+  testWidgets("Check that default parser does not fail on empty data", (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
@@ -32,16 +31,14 @@ void main() {
 void testNewParser(BuildContext context) {
   HtmlParser.parseHTML("<b>Hello, World!</b>");
 
-  StyledElement tree = HtmlParser.lexDomTree(
-    HtmlParser.parseHTML(
-        "Hello! <b>Hello, World!</b><i>Hello, New World!</i>"),
+  StyledElement tree = HtmlParser.lexDomTree([
+    HtmlParser.parseHTML("Hello! <b>Hello, World!</b><i>Hello, New World!</i>"),
     [],
     Html.tags,
     context,
     HtmlParser(
       key: null,
-      htmlData: HtmlParser.parseHTML(
-          "Hello! <b>Hello, World!</b><i>Hello, New World!</i>"),
+      htmlData: HtmlParser.parseHTML("Hello! <b>Hello, World!</b><i>Hello, New World!</i>"),
       onLinkTap: null,
       onAnchorTap: null,
       onImageTap: null,
@@ -55,19 +52,17 @@ void testNewParser(BuildContext context) {
       selectionControls: null,
       scrollPhysics: null,
     )
-  );
+  ]);
   print(tree.toString());
 
-  tree = HtmlParser.lexDomTree(
-    HtmlParser.parseHTML(
-        "Hello, World! <a href='https://example.com'>This is a link</a>"),
+  tree = HtmlParser.lexDomTree([
+    HtmlParser.parseHTML("Hello, World! <a href='https://example.com'>This is a link</a>"),
     [],
     Html.tags,
     context,
     HtmlParser(
       key: null,
-      htmlData: HtmlParser.parseHTML(
-          "Hello, World! <a href='https://example.com'>This is a link</a>"),
+      htmlData: HtmlParser.parseHTML("Hello, World! <a href='https://example.com'>This is a link</a>"),
       onLinkTap: null,
       onAnchorTap: null,
       onImageTap: null,
@@ -81,10 +76,10 @@ void testNewParser(BuildContext context) {
       selectionControls: null,
       scrollPhysics: null,
     )
-  );
+  ]);
   print(tree.toString());
 
-  tree = HtmlParser.lexDomTree(
+  tree = HtmlParser.lexDomTree([
     HtmlParser.parseHTML("<img src='https://image.example.com' />"),
     [],
     Html.tags,
@@ -105,19 +100,17 @@ void testNewParser(BuildContext context) {
       selectionControls: null,
       scrollPhysics: null,
     )
-  );
+  ]);
   print(tree.toString());
 
-  tree = HtmlParser.lexDomTree(
-    HtmlParser.parseHTML(
-        "<div><div><div><div><a href='link'>Link</a><div>Hello, World! <b>Bold and <i>Italic</i></b></div></div></div></div></div>"),
+  tree = HtmlParser.lexDomTree([
+    HtmlParser.parseHTML("<div><div><div><div><a href='link'>Link</a><div>Hello, World! <b>Bold and <i>Italic</i></b></div></div></div></div></div>"),
     [],
     Html.tags,
     context,
     HtmlParser(
       key: null,
-      htmlData: HtmlParser.parseHTML(
-          "<div><div><div><div><a href='link'>Link</a><div>Hello, World! <b>Bold and <i>Italic</i></b></div></div></div></div></div>"),
+      htmlData: HtmlParser.parseHTML("<div><div><div><div><a href='link'>Link</a><div>Hello, World! <b>Bold and <i>Italic</i></b></div></div></div></div></div>"),
       onLinkTap: null,
       onAnchorTap: null,
       onImageTap: null,
@@ -131,7 +124,7 @@ void testNewParser(BuildContext context) {
       selectionControls: null,
       scrollPhysics: null,
     )
-  );
+  ]);
   print(tree.toString());
 
   /*ReplacedElement videoContentElement = parseReplacedElement(
