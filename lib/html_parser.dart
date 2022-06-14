@@ -817,7 +817,7 @@ class _HtmlParserState extends State<HtmlParser> {
     }
 
     if (_parseResult != null && _isOffstage) {
-      WidgetsBinding.instance?.addPostFrameCallback(_afterLayout);
+      WidgetsBinding.instance.addPostFrameCallback(_afterLayout);
     }
 
     final children = <Widget>[];
