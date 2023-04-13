@@ -9,6 +9,7 @@ class CssBoxWidget extends StatelessWidget {
     super.key,
     required this.child,
     required this.style,
+    this.overriddenTextScaleFactor,
     this.textDirection,
     this.childIsReplaced = false,
     this.shrinkWrap = false,
@@ -23,6 +24,7 @@ class CssBoxWidget extends StatelessWidget {
     this.textDirection,
     this.childIsReplaced = false,
     this.shrinkWrap = false,
+    this.overriddenTextScaleFactor,
     bool selectable = false,
     TextSelectionControls? selectionControls,
     ScrollPhysics? scrollPhysics,
@@ -38,6 +40,10 @@ class CssBoxWidget extends StatelessWidget {
 
   /// The child to be rendered within the CSS Box.
   final Widget child;
+
+  /// The [overriddenTextScaleFactor] variable stores a value representing the text scale factor. This overrides the system's default text scale factor and is used to scale the text size
+  /// If this variable is not set, the application will use the default text scale factor provided by [MediaQuery.textScaleFactorOf].
+  final double? overriddenTextScaleFactor;
 
   /// The style to use to compute this box's margins/padding/box decoration/width/height/etc.
   ///
@@ -85,6 +91,11 @@ class CssBoxWidget extends StatelessWidget {
         if (markerBox != null) Text.rich(markerBox),
       ],
     );
+  }
+
+  double _calculateEmValue(Style style, BuildContext buildContext) {
+    final scaleFactor = overriddenTextScaleFactor ?? MediaQuery.textScaleFactorOf(buildContext);
+    return (style.fontSize?.emValue ?? 16) * scaleFactor * MediaQuery.of(buildContext).devicePixelRatio;
   }
 
   /// Takes a list of InlineSpan children and generates a Text.rich Widget
@@ -709,10 +720,6 @@ extension Normalize on Dimension {
         return;
     }
   }
-}
-
-double _calculateEmValue(Style style, BuildContext buildContext) {
-  return (style.fontSize?.emValue ?? 16) * MediaQuery.textScaleFactorOf(buildContext) * MediaQuery.of(buildContext).devicePixelRatio;
 }
 
 class CSSBoxParentData extends ContainerBoxParentData<RenderBox> {}

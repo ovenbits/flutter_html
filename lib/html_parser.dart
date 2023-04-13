@@ -121,6 +121,7 @@ class HtmlParser extends StatefulWidget {
           child: CssBoxWidget(
             style: tree.style,
             shrinkWrap: newContext.parser.shrinkWrap,
+            overriddenTextScaleFactor: textScaleFactor,
             childIsReplaced: true, //TODO is this true?
             child: customRenders[entry]!.widget!.call(newContext, buildChildren),
           ),
