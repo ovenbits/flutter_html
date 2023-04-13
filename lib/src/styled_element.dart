@@ -24,8 +24,7 @@ class StyledElement {
     required dom.Element? node,
   }) : this._node = node;
 
-  bool matchesSelector(String selector) =>
-      (_node != null && matches(_node!, selector)) || name == selector;
+  bool matchesSelector(String selector) => (_node != null && matches(_node!, selector)) || name == selector;
 
   Map<String, String> get attributes =>
       _node?.attributes.map((key, value) {
@@ -37,18 +36,15 @@ class StyledElement {
 
   @override
   String toString() {
-    String selfData =
-        "[$name] ${children.length} ${elementClasses.isNotEmpty == true ? 'C:${elementClasses.toString()}' : ''}${elementId.isNotEmpty == true ? 'ID: $elementId' : ''}";
+    String selfData = "[$name] ${children.length} ${elementClasses.isNotEmpty == true ? 'C:${elementClasses.toString()}' : ''}${elementId.isNotEmpty == true ? 'ID: $elementId' : ''}";
     children.forEach((child) {
-      selfData += ("\n${child.toString()}")
-          .replaceAll(RegExp("^", multiLine: true), "-");
+      selfData += ("\n${child.toString()}").replaceAll(RegExp("^", multiLine: true), "-");
     });
     return selfData;
   }
 }
 
-StyledElement parseStyledElement(
-    dom.Element element, List<StyledElement> children) {
+StyledElement parseStyledElement(dom.Element element, List<StyledElement> children) {
   StyledElement styledElement = StyledElement(
     name: element.localName!,
     elementId: element.id,
@@ -85,10 +81,7 @@ StyledElement parseStyledElement(
       );
       break;
     case "bdo":
-      TextDirection textDirection =
-          ((element.attributes["dir"] ?? "ltr") == "rtl")
-              ? TextDirection.rtl
-              : TextDirection.ltr;
+      TextDirection textDirection = ((element.attributes["dir"] ?? "ltr") == "rtl") ? TextDirection.rtl : TextDirection.ltr;
       styledElement.style = Style(
         direction: textDirection,
       );
@@ -183,11 +176,11 @@ StyledElement parseStyledElement(
       break;
     case "font":
       styledElement.style = Style(
-        color: element.attributes['color'] != null ?
-          element.attributes['color']!.startsWith("#") ?
-            ExpressionMapping.stringToColor(element.attributes['color']!) :
-            ExpressionMapping.namedColorToColor(element.attributes['color']!) :
-          null,
+        color: element.attributes['color'] != null
+            ? element.attributes['color']!.startsWith("#")
+                ? ExpressionMapping.stringToColor(element.attributes['color']!)
+                : ExpressionMapping.namedColorToColor(element.attributes['color']!)
+            : null,
         fontFamily: element.attributes['face']?.split(",").first,
         fontSize: element.attributes['size'] != null ? numberToFontSize(element.attributes['size']!) : null,
       );
@@ -302,17 +295,13 @@ StyledElement parseStyledElement(
         styledElement.style = Style(
 //          margin: EdgeInsets.only(left: 30.0),
           display: Display.BLOCK,
-          listStyleType: element.localName == "ol"
-              ? ListStyleType.DECIMAL
-              : ListStyleType.DISC,
+          listStyleType: element.localName == "ol" ? ListStyleType.DECIMAL : ListStyleType.DISC,
         );
       } else {
         styledElement.style = Style(
 //          margin: EdgeInsets.only(left: 30.0, top: 14.0, bottom: 14.0),
           display: Display.BLOCK,
-          listStyleType: element.localName == "ol"
-              ? ListStyleType.DECIMAL
-              : ListStyleType.DISC,
+          listStyleType: element.localName == "ol" ? ListStyleType.DECIMAL : ListStyleType.DISC,
         );
       }
       break;

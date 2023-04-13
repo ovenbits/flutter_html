@@ -8,13 +8,11 @@ import 'package:html/dom.dart' as dom;
 
 typedef VideoControllerCallback = void Function(dom.Element?, ChewieController, VideoPlayerController);
 
-CustomRender videoRender({VideoControllerCallback? onControllerCreated})
-  => CustomRender.widget(widget: (context, buildChildren)
-    => VideoWidget(context: context, callback: onControllerCreated));
+CustomRender videoRender({VideoControllerCallback? onControllerCreated}) => CustomRender.widget(widget: (context, buildChildren) => VideoWidget(context: context, callback: onControllerCreated));
 
 CustomRenderMatcher videoMatcher() => (context) {
-  return context.tree.element?.localName == "video";
-};
+      return context.tree.element?.localName == "video";
+    };
 
 class VideoWidget extends StatefulWidget {
   final RenderContext context;
@@ -40,8 +38,7 @@ class _VideoWidgetState extends State<VideoWidget> {
   void initState() {
     final attributes = widget.context.tree.element?.attributes ?? {};
     sources = <String?>[
-      if (attributes['src'] != null)
-        attributes['src'],
+      if (attributes['src'] != null) attributes['src'],
       ...ReplacedElement.parseMediaSources(widget.context.tree.element!.children),
     ];
     if (sources.isNotEmpty && sources.first != null) {
@@ -50,9 +47,7 @@ class _VideoWidgetState extends State<VideoWidget> {
       videoController = VideoPlayerController.network(sources.first!);
       chewieController = ChewieController(
         videoPlayerController: videoController!,
-        placeholder: attributes['poster'] != null && attributes['poster']!.isNotEmpty
-            ? Image.network(attributes['poster']!)
-            : Container(color: Colors.black),
+        placeholder: attributes['poster'] != null && attributes['poster']!.isNotEmpty ? Image.network(attributes['poster']!) : Container(color: Colors.black),
         autoPlay: attributes['autoplay'] != null,
         looping: attributes['loop'] != null,
         showControls: attributes['controls'] != null,

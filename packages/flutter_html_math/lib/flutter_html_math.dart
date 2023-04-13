@@ -6,27 +6,26 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 
 CustomRender mathRender({OnMathError? onMathError}) => CustomRender.widget(widget: (context, buildChildren) {
-  String texStr = context.tree.element == null ? '' : parseMathRecursive(context.tree.element!, r'');
-  return Container(
-      width: context.parser.shrinkWrap ? null : MediaQuery.of(context.buildContext).size.width,
-      child: Math.tex(
-        texStr,
-        mathStyle: MathStyle.display,
-        textStyle: context.style.generateTextStyle(context.buildContext),
-        onErrorFallback: (FlutterMathException e) {
-          if (onMathError != null) {
-            return onMathError.call(texStr, e.message, e.messageWithType);
-          } else {
-            return Text(e.message);
-          }
-        },
-      )
-  );
-});
+      String texStr = context.tree.element == null ? '' : parseMathRecursive(context.tree.element!, r'');
+      return Container(
+          width: context.parser.shrinkWrap ? null : MediaQuery.of(context.buildContext).size.width,
+          child: Math.tex(
+            texStr,
+            mathStyle: MathStyle.display,
+            textStyle: context.style.generateTextStyle(context.buildContext),
+            onErrorFallback: (FlutterMathException e) {
+              if (onMathError != null) {
+                return onMathError.call(texStr, e.message, e.messageWithType);
+              } else {
+                return Text(e.message);
+              }
+            },
+          ));
+    });
 
 CustomRenderMatcher mathMatcher() => (context) {
-  return context.tree.element?.localName == "math";
-};
+      return context.tree.element?.localName == "math";
+    };
 
 String parseMathRecursive(dom.Node node, String parsed) {
   if (node is dom.Element) {
@@ -38,11 +37,9 @@ String parseMathRecursive(dom.Node node, String parsed) {
     }
     // note: munder, mover, and munderover do not support placing braces and other
     // markings above/below elements, instead they are treated as super/subscripts for now.
-    if ((node.localName == "msup" || node.localName == "msub"
-        || node.localName == "munder" || node.localName == "mover") && nodeList.length == 2) {
+    if ((node.localName == "msup" || node.localName == "msub" || node.localName == "munder" || node.localName == "mover") && nodeList.length == 2) {
       parsed = parseMathRecursive(nodeList[0], parsed);
-      parsed = parseMathRecursive(nodeList[1],
-          parsed + "${node.localName == "msup" || node.localName == "mover" ? "^" : "_"}{") + "}";
+      parsed = parseMathRecursive(nodeList[1], parsed + "${node.localName == "msup" || node.localName == "mover" ? "^" : "_"}{") + "}";
     }
     if ((node.localName == "msubsup" || node.localName == "munderover") && nodeList.length == 3) {
       parsed = parseMathRecursive(nodeList[0], parsed);
@@ -96,8 +93,7 @@ Map<String, String> mathML2Tex = {
 };
 
 typedef OnMathError = Widget Function(
-    String parsedTex,
-    String exception,
-    String exceptionWithType,
-    );
-
+  String parsedTex,
+  String exception,
+  String exceptionWithType,
+);

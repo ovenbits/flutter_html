@@ -8,13 +8,11 @@ import 'package:html/dom.dart' as dom;
 
 typedef AudioControllerCallback = void Function(dom.Element?, ChewieAudioController, VideoPlayerController);
 
-CustomRender audioRender({AudioControllerCallback? onControllerCreated})
-  => CustomRender.widget(widget: (context, buildChildren)
-    => AudioWidget(context: context, callback: onControllerCreated));
+CustomRender audioRender({AudioControllerCallback? onControllerCreated}) => CustomRender.widget(widget: (context, buildChildren) => AudioWidget(context: context, callback: onControllerCreated));
 
 CustomRenderMatcher audioMatcher() => (context) {
-  return context.tree.element?.localName == "audio";
-};
+      return context.tree.element?.localName == "audio";
+    };
 
 class AudioWidget extends StatefulWidget {
   final RenderContext context;
@@ -37,8 +35,7 @@ class _AudioWidgetState extends State<AudioWidget> {
   @override
   void initState() {
     sources = <String?>[
-      if (widget.context.tree.element?.attributes['src'] != null)
-        widget.context.tree.element!.attributes['src'],
+      if (widget.context.tree.element?.attributes['src'] != null) widget.context.tree.element!.attributes['src'],
       ...ReplacedElement.parseMediaSources(widget.context.tree.element!.children),
     ];
     if (sources.isNotEmpty && sources.first != null) {
@@ -72,8 +69,7 @@ class _AudioWidgetState extends State<AudioWidget> {
     return Container(
       key: widget.context.key,
       width: widget.context.style.width ?? 300,
-      height: Theme.of(bContext).platform == TargetPlatform.android
-          ? 48 : 75,
+      height: Theme.of(bContext).platform == TargetPlatform.android ? 48 : 75,
       child: ChewieAudio(
         controller: chewieAudioController!,
       ),

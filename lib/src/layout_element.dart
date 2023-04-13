@@ -146,25 +146,23 @@ class DetailsContentElement extends LayoutElement {
     return ExpansionTile(
         key: AnchorKey.of(context.parser.key, this),
         expandedAlignment: Alignment.centerLeft,
-        title: elementList.isNotEmpty == true && elementList.first.localName == "summary" ? StyledText(
-          textSpan: TextSpan(
-            style: style.generateTextStyle(context.buildContext),
-            children: firstChild == null ? [] : [firstChild],
-          ),
-          style: style,
-          renderContext: context,
-        ) : Text("Details"),
+        title: elementList.isNotEmpty == true && elementList.first.localName == "summary"
+            ? StyledText(
+                textSpan: TextSpan(
+                  style: style.generateTextStyle(context.buildContext),
+                  children: firstChild == null ? [] : [firstChild],
+                ),
+                style: style,
+                renderContext: context,
+              )
+            : Text("Details"),
         children: [
           StyledText(
-            textSpan: TextSpan(
-              style: style.generateTextStyle(context.buildContext),
-              children: getChildren(childrenList, context, elementList.isNotEmpty == true && elementList.first.localName == "summary" ? firstChild : null)
-            ),
+            textSpan: TextSpan(style: style.generateTextStyle(context.buildContext), children: getChildren(childrenList, context, elementList.isNotEmpty == true && elementList.first.localName == "summary" ? firstChild : null)),
             style: style,
             renderContext: context,
           ),
-        ]
-    );
+        ]);
   }
 
   List<InlineSpan> getChildren(List<InlineSpan> children, RenderContext context, InlineSpan? firstChild) {
@@ -181,20 +179,15 @@ class EmptyLayoutElement extends LayoutElement {
 }
 
 LayoutElement parseLayoutElement(
-    dom.Element element,
-    List<StyledElement> children,
+  dom.Element element,
+  List<StyledElement> children,
 ) {
   switch (element.localName) {
     case "details":
       if (children.isEmpty) {
         return EmptyLayoutElement(name: "empty");
       }
-      return DetailsContentElement(
-          node: element,
-          name: element.localName!,
-          children: children,
-          elementList: element.children
-      );
+      return DetailsContentElement(node: element, name: element.localName!, children: children, elementList: element.children);
     case "thead":
     case "tbody":
     case "tfoot":

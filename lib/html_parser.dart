@@ -16,10 +16,10 @@ import 'package:html/parser.dart' as htmlparser;
 import 'package:numerus/numerus.dart';
 
 typedef OnTap = void Function(
-    String? url,
-    RenderContext context,
-    Map<String, String> attributes,
-    dom.Element? element,
+  String? url,
+  RenderContext context,
+  Map<String, String> attributes,
+  dom.Element? element,
 );
 typedef OnCssParseError = String? Function(
   String css,
@@ -71,10 +71,10 @@ class HtmlParser extends StatefulWidget {
     this.onContentRendered,
     this.textScaleFactor,
   })  : this.internalOnAnchorTap = onAnchorTap != null
-          ? onAnchorTap
-          : key != null
-              ? _handleAnchorTap(key, onLinkTap)
-              : null,
+            ? onAnchorTap
+            : key != null
+                ? _handleAnchorTap(key, onLinkTap)
+                : null,
         super(key: key);
 
   @override
@@ -162,13 +162,13 @@ class HtmlParser extends StatefulWidget {
         final StyledElement tree = parseStyledElement(node, children);
         for (final entry in customRenderMatchers) {
           if (entry.call(
-              RenderContext(
-                buildContext: context,
-                parser: parser,
-                tree: tree,
-                style: Style.fromTextStyle(Theme.of(context).textTheme.bodyText2!),
-              ),
-            )) {
+            RenderContext(
+              buildContext: context,
+              parser: parser,
+              tree: tree,
+              style: Style.fromTextStyle(Theme.of(context).textTheme.bodyText2!),
+            ),
+          )) {
             return tree;
           }
         }
@@ -277,8 +277,7 @@ class HtmlParser extends StatefulWidget {
     return tree;
   }
 
-  static OnTap _handleAnchorTap(Key key, OnTap? onLinkTap) =>
-          (String? url, RenderContext context, Map<String, String> attributes, dom.Element? element) {
+  static OnTap _handleAnchorTap(Key key, OnTap? onLinkTap) => (String? url, RenderContext context, Map<String, String> attributes, dom.Element? element) {
         if (url?.startsWith("#") == true) {
           final anchorContext = AnchorKey.forId(key, url!.substring(1))?.currentContext;
           if (anchorContext != null) {
@@ -324,19 +323,24 @@ class HtmlParser extends StatefulWidget {
       /// initialize indices to negative numbers to make conditionals a little easier
       int textIndex = -1;
       int elementIndex = -1;
+
       /// initialize parent after to a whitespace to account for elements that are
       /// the last child in the list of elements
       String parentAfterText = " ";
+
       /// find the index of the text in the current tree
       if ((tree.element?.nodes.length ?? 0) >= 1) {
         textIndex = tree.element?.nodes.indexWhere((element) => element == tree.node) ?? -1;
       }
+
       /// get the parent nodes
       dom.NodeList? parentNodes = tree.element?.parent?.nodes;
+
       /// find the index of the tree itself in the parent nodes
       if ((parentNodes?.length ?? 0) >= 1) {
         elementIndex = parentNodes?.indexWhere((element) => element == tree.element) ?? -1;
       }
+
       /// if the tree is any node except the last node in the node list and the
       /// next node in the node list is a text node, then get its text. Otherwise
       /// the next node will be a [dom.Element], so keep unwrapping that until
@@ -354,6 +358,7 @@ class HtmlParser extends StatefulWidget {
         }
         parentAfterText = parentAfter?.text ?? " ";
       }
+
       /// If the text is the first element in the current tree node list, it
       /// starts with a whitespace, it isn't a line break, either the
       /// whitespace is unnecessary or it is a block element, and either it is
@@ -363,33 +368,18 @@ class HtmlParser extends StatefulWidget {
       /// We should also delete the whitespace at any point in the node list
       /// if the previous element is a <br> because that tag makes the element
       /// act like a block element.
-      if (textIndex < 1
-          && tree.text!.startsWith(' ')
-          && tree.element?.localName != "br"
-          && (!keepLeadingSpace.data
-              || tree.style.display == Display.BLOCK)
-          && (elementIndex < 1
-              || (elementIndex >= 1
-                  && parentNodes?[elementIndex - 1] is dom.Text
-                  && parentNodes![elementIndex - 1].text!.endsWith(" ")))
-      ) {
+      if (textIndex < 1 && tree.text!.startsWith(' ') && tree.element?.localName != "br" && (!keepLeadingSpace.data || tree.style.display == Display.BLOCK) && (elementIndex < 1 || (elementIndex >= 1 && parentNodes?[elementIndex - 1] is dom.Text && parentNodes![elementIndex - 1].text!.endsWith(" ")))) {
         tree.text = tree.text!.replaceFirst(' ', '');
-      } else if (textIndex >= 1
-          && tree.text!.startsWith(' ')
-          && tree.element?.nodes[textIndex - 1] is dom.Element
-          && (tree.element?.nodes[textIndex - 1] as dom.Element).localName == "br"
-      ) {
+      } else if (textIndex >= 1 && tree.text!.startsWith(' ') && tree.element?.nodes[textIndex - 1] is dom.Element && (tree.element?.nodes[textIndex - 1] as dom.Element).localName == "br") {
         tree.text = tree.text!.replaceFirst(' ', '');
       }
+
       /// If the text is the last element in the current tree node list, it isn't
       /// a line break, and the next text node starts with a whitespace,
       /// update the [Context] to signify to that next text node whether it should
       /// keep its whitespace. This is based on whether the current text ends with a
       /// whitespace.
-      if (textIndex == (tree.element?.nodes.length ?? 1) - 1
-          && tree.element?.localName != "br"
-          && parentAfterText.startsWith(' ')
-      ) {
+      if (textIndex == (tree.element?.nodes.length ?? 1) - 1 && tree.element?.localName != "br" && parentAfterText.startsWith(' ')) {
         keepLeadingSpace.data = !tree.text!.endsWith(' ');
       }
     }
@@ -407,12 +397,7 @@ class HtmlParser extends StatefulWidget {
   /// (3) Replace all tabs with a space
   /// (4) Replace any instances of two or more spaces with a single space.
   static String _removeUnnecessaryWhitespace(String text) {
-    return text
-        .replaceAll(RegExp("\ *(?=\n)"), "\n")
-        .replaceAll(RegExp("(?:\n)\ *"), "\n")
-        .replaceAll("\n", " ")
-        .replaceAll("\t", " ")
-        .replaceAll(RegExp(" {2,}"), " ");
+    return text.replaceAll(RegExp("\ *(?=\n)"), "\n").replaceAll(RegExp("(?:\n)\ *"), "\n").replaceAll("\n", " ").replaceAll("\t", " ").replaceAll(RegExp(" {2,}"), " ");
   }
 
   /// [processListCharacters] adds list characters to the front of all list items.
@@ -426,8 +411,7 @@ class HtmlParser extends StatefulWidget {
 
   /// [_processListCharactersRecursive] uses a Stack of integers to properly number and
   /// bullet all list items according to the [ListStyleType] they have been given.
-  static StyledElement _processListCharactersRecursive(
-      StyledElement tree, ListQueue<Context> olStack) {
+  static StyledElement _processListCharactersRecursive(StyledElement tree, ListQueue<Context> olStack) {
     if (tree.style.listStylePosition == null) {
       tree.style.listStylePosition = ListStylePosition.OUTSIDE;
     }
@@ -532,8 +516,8 @@ class HtmlParser extends StatefulWidget {
           break;
       }
       tree.style.markerContent = Text(
-          marker,
-          textAlign: TextAlign.right,
+        marker,
+        textAlign: TextAlign.right,
       );
     }
 
@@ -551,12 +535,10 @@ class HtmlParser extends StatefulWidget {
   /// properties.
   static StyledElement _processBeforesAndAfters(StyledElement tree) {
     if (tree.style.before != null) {
-      tree.children.insert(
-          0, TextContentElement(text: tree.style.before, style: tree.style.copyWith(beforeAfterNull: true, display: Display.INLINE)));
+      tree.children.insert(0, TextContentElement(text: tree.style.before, style: tree.style.copyWith(beforeAfterNull: true, display: Display.INLINE)));
     }
     if (tree.style.after != null) {
-      tree.children
-          .add(TextContentElement(text: tree.style.after, style: tree.style.copyWith(beforeAfterNull: true, display: Display.INLINE)));
+      tree.children.add(TextContentElement(text: tree.style.after, style: tree.style.copyWith(beforeAfterNull: true, display: Display.INLINE)));
     }
 
     tree.children.forEach(_processBeforesAndAfters);
@@ -610,8 +592,7 @@ class HtmlParser extends StatefulWidget {
       if (tree.children.first.style.margin == null) {
         tree.children.first.style.margin = EdgeInsets.zero;
       } else {
-        tree.children.first.style.margin =
-            tree.children.first.style.margin!.copyWith(top: 0);
+        tree.children.first.style.margin = tree.children.first.style.margin!.copyWith(top: 0);
       }
     }
 
@@ -626,41 +607,34 @@ class HtmlParser extends StatefulWidget {
       if (tree.style.margin == null) {
         tree.style.margin = EdgeInsets.only(bottom: newOuterMarginBottom);
       } else {
-        tree.style.margin =
-            tree.style.margin!.copyWith(bottom: newOuterMarginBottom);
+        tree.style.margin = tree.style.margin!.copyWith(bottom: newOuterMarginBottom);
       }
 
       // And remove the child's margin
       if (tree.children.last.style.margin == null) {
         tree.children.last.style.margin = EdgeInsets.zero;
       } else {
-        tree.children.last.style.margin =
-            tree.children.last.style.margin!.copyWith(bottom: 0);
+        tree.children.last.style.margin = tree.children.last.style.margin!.copyWith(bottom: 0);
       }
     }
 
     // Handle case (2) from above.
     if (tree.children.length > 1) {
       for (int i = 1; i < tree.children.length; i++) {
-        final previousSiblingBottom =
-            tree.children[i - 1].style.margin?.bottom ?? 0;
+        final previousSiblingBottom = tree.children[i - 1].style.margin?.bottom ?? 0;
         final thisTop = tree.children[i].style.margin?.top ?? 0;
         final newInternalMargin = max(previousSiblingBottom, thisTop) / 2;
 
         if (tree.children[i - 1].style.margin == null) {
-          tree.children[i - 1].style.margin =
-              EdgeInsets.only(bottom: newInternalMargin);
+          tree.children[i - 1].style.margin = EdgeInsets.only(bottom: newInternalMargin);
         } else {
-          tree.children[i - 1].style.margin = tree.children[i - 1].style.margin!
-              .copyWith(bottom: newInternalMargin);
+          tree.children[i - 1].style.margin = tree.children[i - 1].style.margin!.copyWith(bottom: newInternalMargin);
         }
 
         if (tree.children[i].style.margin == null) {
-          tree.children[i].style.margin =
-              EdgeInsets.only(top: newInternalMargin);
+          tree.children[i].style.margin = EdgeInsets.only(top: newInternalMargin);
         } else {
-          tree.children[i].style.margin =
-              tree.children[i].style.margin!.copyWith(top: newInternalMargin);
+          tree.children[i].style.margin = tree.children[i].style.margin!.copyWith(top: newInternalMargin);
         }
       }
     }
@@ -679,24 +653,11 @@ class HtmlParser extends StatefulWidget {
     tree.children.forEachIndexed((index, child) {
       if (child is EmptyContentElement || child is EmptyLayoutElement) {
         toRemove.add(child);
-      } else if (child is TextContentElement
-          && ((tree.name == "body"
-              && (index == 0
-                  || index + 1 == tree.children.length
-                  || tree.children[index - 1].style.display == Display.BLOCK
-                  || tree.children[index + 1].style.display == Display.BLOCK))
-              || tree.name == "ul")
-          && child.text!.replaceAll(' ', '').isEmpty) {
+      } else if (child is TextContentElement && ((tree.name == "body" && (index == 0 || index + 1 == tree.children.length || tree.children[index - 1].style.display == Display.BLOCK || tree.children[index + 1].style.display == Display.BLOCK)) || tree.name == "ul") && child.text!.replaceAll(' ', '').isEmpty) {
         toRemove.add(child);
-      } else if (child is TextContentElement
-          && child.text!.isEmpty
-          && child.style.whiteSpace != WhiteSpace.PRE) {
+      } else if (child is TextContentElement && child.text!.isEmpty && child.style.whiteSpace != WhiteSpace.PRE) {
         toRemove.add(child);
-      } else if (child is TextContentElement &&
-          child.style.whiteSpace != WhiteSpace.PRE &&
-          tree.style.display == Display.BLOCK &&
-          child.text!.isEmpty &&
-          lastChildBlock) {
+      } else if (child is TextContentElement && child.style.whiteSpace != WhiteSpace.PRE && tree.style.display == Display.BLOCK && child.text!.isEmpty && lastChildBlock) {
         toRemove.add(child);
       } else if (child.style.display == Display.NONE) {
         toRemove.add(child);
@@ -705,9 +666,7 @@ class HtmlParser extends StatefulWidget {
       }
 
       // This is used above to check if the previous element is a block element or a line break.
-      lastChildBlock = (child.style.display == Display.BLOCK ||
-          child.style.display == Display.LIST_ITEM ||
-          (child is TextContentElement && child.text == '\n'));
+      lastChildBlock = (child.style.display == Display.BLOCK || child.style.display == Display.LIST_ITEM || (child is TextContentElement && child.text == '\n'));
     });
     tree.children.removeWhere((element) => toRemove.contains(element));
 
@@ -721,8 +680,7 @@ class HtmlParser extends StatefulWidget {
 
     tree.children.forEach((child) {
       if ((child.style.fontSize?.size ?? parentFontSize)! < 0) {
-        child.style.fontSize =
-            FontSize(parentFontSize! * -child.style.fontSize!.size!);
+        child.style.fontSize = FontSize(parentFontSize! * -child.style.fontSize!.size!);
       }
 
       _processFontSize(child);
@@ -878,29 +836,14 @@ class _HtmlParserState extends State<HtmlParser> {
     parsedTree,
     cleanedTree,
   }) {
-      // This is the final scaling that assumes any other StyledText instances are
-      // using textScaleFactor = 1.0 (which is the default). This ensures the correct
-      // scaling is used, but relies on https://github.com/flutter/flutter/pull/59711
-      // to wrap everything when larger accessibility fonts are used.
-      if (widget.selectable) {
-        return StyledText.selectable(
-          key: _htmlGlobalKey,
-          textSpan: parsedTree as TextSpan,
-          style: cleanedTree.style,
-          textScaleFactor: widget.textScaleFactor ?? MediaQuery.of(context).textScaleFactor,
-          renderContext: RenderContext(
-            buildContext: context,
-            parser: widget,
-            tree: cleanedTree,
-            style: cleanedTree.style,
-          ),
-          selectionControls: widget.selectionControls,
-          scrollPhysics: widget.scrollPhysics,
-        );
-      }
-      return StyledText(
+    // This is the final scaling that assumes any other StyledText instances are
+    // using textScaleFactor = 1.0 (which is the default). This ensures the correct
+    // scaling is used, but relies on https://github.com/flutter/flutter/pull/59711
+    // to wrap everything when larger accessibility fonts are used.
+    if (widget.selectable) {
+      return StyledText.selectable(
         key: _htmlGlobalKey,
-        textSpan: parsedTree,
+        textSpan: parsedTree as TextSpan,
         style: cleanedTree.style,
         textScaleFactor: widget.textScaleFactor ?? MediaQuery.of(context).textScaleFactor,
         renderContext: RenderContext(
@@ -909,7 +852,22 @@ class _HtmlParserState extends State<HtmlParser> {
           tree: cleanedTree,
           style: cleanedTree.style,
         ),
+        selectionControls: widget.selectionControls,
+        scrollPhysics: widget.scrollPhysics,
       );
+    }
+    return StyledText(
+      key: _htmlGlobalKey,
+      textSpan: parsedTree,
+      style: cleanedTree.style,
+      textScaleFactor: widget.textScaleFactor ?? MediaQuery.of(context).textScaleFactor,
+      renderContext: RenderContext(
+        buildContext: context,
+        parser: widget,
+        tree: cleanedTree,
+        style: cleanedTree.style,
+      ),
+    );
   }
 
   void _afterLayout(Duration timeStamp) {
@@ -1122,7 +1080,7 @@ class ContainerSpan extends StatelessWidget {
     required this.style,
     required this.newContext,
     this.shrinkWrap = false,
-  }): super(key: key);
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -1167,7 +1125,7 @@ class StyledText extends StatelessWidget {
     this.key,
     this.selectionControls,
     this.scrollPhysics,
-  }) : _selectable = false,
+  })  : _selectable = false,
         super(key: key);
 
   const StyledText.selectable({
@@ -1178,7 +1136,7 @@ class StyledText extends StatelessWidget {
     this.key,
     this.selectionControls,
     this.scrollPhysics,
-  }) : textSpan = textSpan,
+  })  : textSpan = textSpan,
         _selectable = true,
         super(key: key);
 
