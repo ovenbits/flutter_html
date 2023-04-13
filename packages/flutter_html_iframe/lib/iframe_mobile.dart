@@ -14,6 +14,7 @@ CustomRender iframeRender({NavigationDelegate? navigationDelegate}) => CustomRen
         height: givenHeight ?? (givenWidth ?? 300) / 2,
         child: CssBoxWidget(
           style: context.style,
+          renderContext: context,
           childIsReplaced: true,
           child: WebView(
             initialUrl: context.tree.element?.attributes['src'],

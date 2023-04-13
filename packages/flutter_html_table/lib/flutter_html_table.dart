@@ -10,6 +10,7 @@ import 'package:flutter_html/flutter_html.dart';
 CustomRender tableRender() => CustomRender.widget(widget: (context, buildChildren) {
       return CssBoxWidget(
         key: context.key,
+        renderContext: context,
         style: context.style,
         child: LayoutBuilder(
           builder: (_, constraints) => _layoutCells(context, constraints),
@@ -95,11 +96,13 @@ Widget _layoutCells(RenderContext context, BoxConstraints constraints) {
           rowStart: rowi,
           rowSpan: min(child.rowspan, rows.length - rowi),
           child: CssBoxWidget(
+            renderContext: context,
             style: child.style.merge(row.style), //TODO padding/decoration(color/border)
             child: SizedBox.expand(
               child: Container(
                 alignment: child.style.alignment ?? context.style.alignment ?? Alignment.centerLeft,
                 child: CssBoxWidget.withInlineSpanChildren(
+                  renderContext: context,
                   children: [context.parser.parseTree(context, child)],
                   style: child.style, //TODO updated this. Does it work?
                 ),

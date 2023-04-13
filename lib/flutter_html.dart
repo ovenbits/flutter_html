@@ -157,10 +157,6 @@ class Html extends StatefulWidget {
   final OnContentRendered? onContentRendered;
   final double? textScaleFactor;
 
-  final Widget? loadingPlaceholder;
-  final OnContentRendered? onContentRendered;
-  final double? textScaleFactor;
-
   static List<String> get tags => List<String>.from(HtmlElements.styledElements)
     ..addAll(HtmlElements.interactableElements)
     ..addAll(HtmlElements.replacedElements)

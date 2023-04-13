@@ -1057,13 +1057,13 @@ class ExpressionMapping {
   static VerticalAlign expressionToVerticalAlignTerm(css.LiteralTerm value) {
     switch (value.text) {
       case 'sub':
-        return VerticalAlign.SUB;
+        return VerticalAlign.sub;
       case 'super':
-        return VerticalAlign.SUPER;
+        return VerticalAlign.sup;
       case 'baseline':
-        return VerticalAlign.BASELINE;
+        return VerticalAlign.baseline;
     }
 
-    return VerticalAlign.BASELINE;
+    return VerticalAlign.baseline;
   }
 }

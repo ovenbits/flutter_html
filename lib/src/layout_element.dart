@@ -133,60 +133,37 @@ class DetailsContentElement extends LayoutElement {
 
   @override
   Widget toWidget(RenderContext context) {
-    List<InlineSpan>? childrenList = children
-        .map((tree) => context.parser.parseTree(context, tree))
-        .toList();
+    List<InlineSpan>? childrenList = children.map((tree) => context.parser.parseTree(context, tree)).toList();
     List<InlineSpan> toRemove = [];
     for (InlineSpan child in childrenList) {
-      if (child is TextSpan &&
-          child.text != null &&
-          child.text!.trim().isEmpty) {
+      if (child is TextSpan && child.text != null && child.text!.trim().isEmpty) {
         toRemove.add(child);
       }
     }
     for (InlineSpan child in toRemove) {
       childrenList.remove(child);
     }
-    InlineSpan? firstChild =
-        childrenList.isNotEmpty == true ? childrenList.first : null;
+    InlineSpan? firstChild = childrenList.isNotEmpty == true ? childrenList.first : null;
     return ExpansionTile(
         key: AnchorKey.of(context.parser.key, this),
         expandedAlignment: Alignment.centerLeft,
         title: elementList.isNotEmpty == true && elementList.first.localName == "summary"
-            ? StyledText(
-                textSpan: TextSpan(
-                  style: style.generateTextStyle(context.buildContext),
-                  children: firstChild == null ? [] : [firstChild],
-                ),
-                style: style,
-                renderContext: context,
-              )
-            : Text("Details"),
-        title: elementList.isNotEmpty == true &&
-                elementList.first.localName == "summary"
             ? CssBoxWidget.withInlineSpanChildren(
+                renderContext: context,
                 children: firstChild == null ? [] : [firstChild],
                 style: style,
               )
             : const Text("Details"),
         children: [
-          StyledText(
-            textSpan: TextSpan(style: style.generateTextStyle(context.buildContext), children: getChildren(childrenList, context, elementList.isNotEmpty == true && elementList.first.localName == "summary" ? firstChild : null)),
           CssBoxWidget.withInlineSpanChildren(
-            children: getChildren(
-                childrenList,
-                context,
-                elementList.isNotEmpty == true &&
-                        elementList.first.localName == "summary"
-                    ? firstChild
-                    : null),
+            renderContext: context,
+            children: getChildren(childrenList, context, elementList.isNotEmpty == true && elementList.first.localName == "summary" ? firstChild : null),
             style: style,
           ),
         ]);
   }
 
-  List<InlineSpan> getChildren(List<InlineSpan> children, RenderContext context,
-      InlineSpan? firstChild) {
+  List<InlineSpan> getChildren(List<InlineSpan> children, RenderContext context, InlineSpan? firstChild) {
     if (firstChild != null) children.removeAt(0);
     return children;
   }

@@ -78,6 +78,7 @@ class _AudioWidgetState extends State<AudioWidget> {
 
     return CssBoxWidget(
       key: widget.context.key,
+      renderContext: widget.context,
       style: widget.context.style,
       childIsReplaced: true,
       child: ChewieAudio(

@@ -109,6 +109,7 @@ CustomRender blockElementRender({Style? style, List<InlineSpan>? children}) => C
         baseline: TextBaseline.alphabetic,
         child: CssBoxWidget.withInlineSpanChildren(
           key: context.key,
+          renderContext: context,
           style: style ?? context.tree.style,
           shrinkWrap: context.parser.shrinkWrap,
           childIsReplaced: HtmlElements.replacedExternalElements.contains(context.tree.name),
@@ -130,6 +131,7 @@ CustomRender listElementRender({Style? style, Widget? child, List<InlineSpan>? c
       return WidgetSpan(
         child: CssBoxWidget.withInlineSpanChildren(
           key: context.key,
+          renderContext: context,
           style: style ?? context.style,
           shrinkWrap: context.parser.shrinkWrap,
           children: buildChildren(),
@@ -165,7 +167,7 @@ CustomRender base64ImageRender() => CustomRender.widget(widget: (context, buildC
         decodedImage,
         frameBuilder: (ctx, child, frame, _) {
           if (frame == null) {
-            return Text(_alt(context.tree.element!.attributes.cast()) ?? "", style: context.style.generateTextStyle());
+            return Text(_alt(context.tree.element!.attributes.cast()) ?? "", style: context.style.generateTextStyle(context.buildContext));
           }
           return child;
         },
@@ -325,6 +327,7 @@ CustomRender verticalAlignRender({double? verticalOffset, Style? style, List<Inl
             key: context.key,
             offset: Offset(0, verticalOffset ?? _getVerticalOffset(context.tree)),
             child: CssBoxWidget.withInlineSpanChildren(
+              renderContext: context,
               children: children ?? buildChildren.call(),
               style: context.style,
             ),
@@ -333,7 +336,7 @@ CustomRender verticalAlignRender({double? verticalOffset, Style? style, List<Inl
 
 CustomRender fallbackRender({Style? style, List<InlineSpan>? children}) => CustomRender.inlineSpan(
     inlineSpan: (context, buildChildren) => TextSpan(
-          style: style?.generateTextStyle(context.buildContext) ?? context.style.generateTextStyle(),
+          style: style?.generateTextStyle(context.buildContext) ?? context.style.generateTextStyle(context.buildContext),
           children: context.tree.children
               .expand((tree) => [
                     context.parser.parseTree(context, tree),
@@ -363,7 +366,7 @@ InlineSpan _getInteractableChildren(RenderContext context, InteractableElement t
     return TextSpan(
       text: childSpan.text,
       children: childSpan.children?.map((e) => _getInteractableChildren(context, tree, e, childStyle.merge(childSpan.style))).toList(),
-      style: context.style.generateTextStyle().merge(childSpan.style == null ? childStyle : childStyle.merge(childSpan.style)),
+      style: context.style.generateTextStyle(context.buildContext).merge(childSpan.style == null ? childStyle : childStyle.merge(childSpan.style)),
       semanticsLabel: childSpan.semanticsLabel,
       recognizer: TapGestureRecognizer()..onTap = context.parser.internalOnAnchorTap != null ? () => context.parser.internalOnAnchorTap!(tree.href, context, tree.attributes, tree.element) : null,
     );
