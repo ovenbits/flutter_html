@@ -24,7 +24,6 @@ CustomRender iframeRender({NavigationDelegate? navigationDelegate}) => CustomRen
         height: double.tryParse(context.tree.element?.attributes['height'] ?? "") ?? (double.tryParse(context.tree.element?.attributes['width'] ?? "") ?? 300) / 2,
         child: CssBoxWidget(
           style: context.style,
-          renderContext: context,
           childIsReplaced: true,
           child: Directionality(
             textDirection: TextDirection.ltr,

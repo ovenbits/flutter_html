@@ -120,7 +120,6 @@ class HtmlParser extends StatefulWidget {
         return WidgetSpan(
           child: CssBoxWidget(
             style: tree.style,
-            renderContext: context,
             shrinkWrap: newContext.parser.shrinkWrap,
             childIsReplaced: true, //TODO is this true?
             child: customRenders[entry]!.widget!.call(newContext, buildChildren),
@@ -800,12 +799,12 @@ class _HtmlParserState extends State<HtmlParser> {
 
   @override
   Widget build(BuildContext context) {
-    final themeData = Theme.of(context);
-//    if (themeData != _themeData) {
-//      _themeData = themeData;
-////      _parseResult = null;
-//      _parseTree(context);
-//    }
+    //final themeData = Theme.of(context);
+    //if (themeData != _themeData) {
+    //  _themeData = themeData;
+    //  //_parseResult = null;
+    //  _parseTree(context);
+    //}
 
     if (_parseResult == null) {
       try {
@@ -835,9 +834,15 @@ class _HtmlParserState extends State<HtmlParser> {
 
     if (!_isOffstage && _parseResult != null) {
       children.add(
-        _buildStyledText(
-          parsedTree: _parsedTree,
-          cleanedTree: _cleanedTree,
+        CssBoxWidget.withInlineSpanChildren(
+          key: _htmlGlobalKey,
+          style: _cleanedTree!.style,
+          context: context,
+          children: [_parsedTree!],
+          selectable: widget.selectable,
+          scrollPhysics: widget.scrollPhysics,
+          selectionControls: widget.selectionControls,
+          shrinkWrap: widget.shrinkWrap,
         ),
       );
     }
@@ -847,20 +852,26 @@ class _HtmlParserState extends State<HtmlParser> {
         if (_isOffstage && _parseResult != null)
           Offstage(
             offstage: true,
-            child: _buildStyledText(
-              parsedTree: _parsedTree,
-              cleanedTree: _cleanedTree,
+            child: CssBoxWidget.withInlineSpanChildren(
+              key: _htmlGlobalKey,
+              style: _cleanedTree!.style,
+              context: context,
+              children: [_parsedTree!],
+              selectable: widget.selectable,
+              scrollPhysics: widget.scrollPhysics,
+              selectionControls: widget.selectionControls,
+              shrinkWrap: widget.shrinkWrap,
             ),
           ),
         AnimatedSwitcher(
           key: _animatedSwitcherKey,
           layoutBuilder: (currentChild, previousChildren) {
             return Stack(
+              alignment: Alignment.topLeft,
               children: <Widget>[
                 ...previousChildren,
                 if (currentChild != null) currentChild,
               ],
-              alignment: Alignment.topLeft,
             );
           },
           duration: kThemeAnimationDuration,
@@ -960,7 +971,7 @@ class _HtmlParserState extends State<HtmlParser> {
       if (kDebugMode) {
         print(exception);
       }
-      return null;
+      return;
     } finally {
       _renderQueue.remove(_completer);
       _completer = null;

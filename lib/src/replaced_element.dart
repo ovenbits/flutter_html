@@ -96,7 +96,6 @@ class RubyElement extends ReplacedElement {
                 child: Transform(
                   transform: Matrix4.translationValues(0, -(rubyYPos), 0),
                   child: CssBoxWidget(
-                    renderContext: context,
                     style: c.style,
                     child: Text(
                       c.element!.innerHtml,
@@ -107,7 +106,6 @@ class RubyElement extends ReplacedElement {
               ),
             ),
             CssBoxWidget(
-              renderContext: context,
               style: context.style,
               child: node is TextContentElement
                   ? Text(

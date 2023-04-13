@@ -109,7 +109,7 @@ CustomRender blockElementRender({Style? style, List<InlineSpan>? children}) => C
         baseline: TextBaseline.alphabetic,
         child: CssBoxWidget.withInlineSpanChildren(
           key: context.key,
-          renderContext: context,
+          context: context.buildContext,
           style: style ?? context.tree.style,
           shrinkWrap: context.parser.shrinkWrap,
           childIsReplaced: HtmlElements.replacedExternalElements.contains(context.tree.name),
@@ -131,7 +131,7 @@ CustomRender listElementRender({Style? style, Widget? child, List<InlineSpan>? c
       return WidgetSpan(
         child: CssBoxWidget.withInlineSpanChildren(
           key: context.key,
-          renderContext: context,
+          context: context.buildContext,
           style: style ?? context.style,
           shrinkWrap: context.parser.shrinkWrap,
           children: buildChildren(),
@@ -327,7 +327,7 @@ CustomRender verticalAlignRender({double? verticalOffset, Style? style, List<Inl
             key: context.key,
             offset: Offset(0, verticalOffset ?? _getVerticalOffset(context.tree)),
             child: CssBoxWidget.withInlineSpanChildren(
-              renderContext: context,
+              context: context.buildContext,
               children: children ?? buildChildren.call(),
               style: context.style,
             ),

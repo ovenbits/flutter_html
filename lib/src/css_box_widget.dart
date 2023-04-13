@@ -7,7 +7,6 @@ import 'package:flutter_html/flutter_html.dart';
 class CssBoxWidget extends StatelessWidget {
   const CssBoxWidget({
     super.key,
-    required this.renderContext,
     required this.child,
     required this.style,
     this.textDirection,
@@ -18,7 +17,7 @@ class CssBoxWidget extends StatelessWidget {
   /// Generates a CSSBoxWidget that contains a list of InlineSpan children.
   CssBoxWidget.withInlineSpanChildren({
     super.key,
-    required this.renderContext,
+    required BuildContext context,
     required List<InlineSpan> children,
     required this.style,
     this.textDirection,
@@ -29,15 +28,13 @@ class CssBoxWidget extends StatelessWidget {
     ScrollPhysics? scrollPhysics,
   }) : child = selectable
             ? _generateSelectableWidgetChild(
-                renderContext,
+                context,
                 children,
                 style,
                 selectionControls,
                 scrollPhysics,
               )
-            : _generateWidgetChild(renderContext, children, style);
-
-  final RenderContext renderContext;
+            : _generateWidgetChild(context, children, style);
 
   /// The child to be rendered within the CSS Box.
   final Widget child;
@@ -62,7 +59,7 @@ class CssBoxWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final markerBox = style.listStylePosition == ListStylePosition.outside ? _generateMarkerBoxSpan(renderContext, style) : null;
+    final markerBox = style.listStylePosition == ListStylePosition.outside ? _generateMarkerBoxSpan(context, style) : null;
 
     return _CSSBoxRenderer(
       width: style.width ?? Width.auto(),
@@ -92,7 +89,7 @@ class CssBoxWidget extends StatelessWidget {
 
   /// Takes a list of InlineSpan children and generates a Text.rich Widget
   /// containing those children.
-  static Widget _generateWidgetChild(RenderContext context, List<InlineSpan> children, Style style) {
+  static Widget _generateWidgetChild(BuildContext context, List<InlineSpan> children, Style style) {
     if (children.isEmpty) {
       return Container();
     }
@@ -108,7 +105,7 @@ class CssBoxWidget extends StatelessWidget {
 
     return RichText(
       text: TextSpan(
-        style: style.generateTextStyle(context.buildContext),
+        style: style.generateTextStyle(context),
         children: children,
       ),
       textAlign: style.textAlign ?? TextAlign.start,
@@ -119,7 +116,7 @@ class CssBoxWidget extends StatelessWidget {
   }
 
   static Widget _generateSelectableWidgetChild(
-    RenderContext context,
+    BuildContext context,
     List<InlineSpan> children,
     Style style,
     TextSelectionControls? selectionControls,
@@ -131,10 +128,10 @@ class CssBoxWidget extends StatelessWidget {
 
     return SelectableText.rich(
       TextSpan(
-        style: style.generateTextStyle(context.buildContext),
+        style: style.generateTextStyle(context),
         children: children,
       ),
-      style: style.generateTextStyle(context.buildContext),
+      style: style.generateTextStyle(context),
       textAlign: style.textAlign,
       textDirection: style.direction,
       maxLines: style.maxLines,
@@ -143,7 +140,7 @@ class CssBoxWidget extends StatelessWidget {
     );
   }
 
-  static InlineSpan? _generateMarkerBoxSpan(RenderContext context, Style style) {
+  static InlineSpan? _generateMarkerBoxSpan(BuildContext context, Style style) {
     if (style.display == Display.listItem) {
       // First handle listStyleImage
       if (style.listStyleImage != null) {
@@ -156,7 +153,7 @@ class CssBoxWidget extends StatelessWidget {
                 return Text.rich(
                   TextSpan(
                     text: style.marker!.content.replacementContent!,
-                    style: style.marker!.style?.generateTextStyle(context.buildContext),
+                    style: style.marker!.style?.generateTextStyle(context),
                   ),
                 );
               }
@@ -171,7 +168,7 @@ class CssBoxWidget extends StatelessWidget {
       if (style.marker?.content.replacementContent?.isNotEmpty ?? false) {
         return TextSpan(
           text: style.marker!.content.replacementContent!,
-          style: style.marker!.style?.generateTextStyle(context.buildContext),
+          style: style.marker!.style?.generateTextStyle(context),
         );
       }
     }
