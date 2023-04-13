@@ -8,34 +8,38 @@ class InteractableElement extends StyledElement {
   String? href;
 
   InteractableElement({
-    required String name,
-    required List<StyledElement> children,
-    required Style style,
+    required super.name,
+    required super.children,
+    required super.style,
     required this.href,
     required dom.Node node,
-    required String elementId,
-  }) : super(name: name, children: children, style: style, node: node as dom.Element?, elementId: elementId);
+    required super.elementId,
+  }) : super(node: node as dom.Element?);
 }
 
 /// A [Gesture] indicates the type of interaction by a user.
 enum Gesture {
-  TAP,
+  tap,
 }
 
-StyledElement parseInteractableElement(dom.Element element, List<StyledElement> children) {
+StyledElement parseInteractableElement(
+  dom.Element element,
+  List<StyledElement> children,
+) {
   switch (element.localName) {
     case "a":
       if (element.attributes.containsKey('href')) {
         return InteractableElement(
-            name: element.localName!,
-            children: children,
-            href: element.attributes['href'],
-            style: Style(
-              color: Colors.blue,
-              textDecoration: TextDecoration.underline,
-            ),
-            node: element,
-            elementId: element.id);
+          name: element.localName!,
+          children: children,
+          href: element.attributes['href'],
+          style: Style(
+            color: Colors.blue,
+            textDecoration: TextDecoration.underline,
+          ),
+          node: element,
+          elementId: element.id,
+        );
       }
       // When <a> tag have no href, it must be non clickable and without decoration.
       return StyledElement(
@@ -48,6 +52,13 @@ StyledElement parseInteractableElement(dom.Element element, List<StyledElement> 
 
     /// will never be called, just to suppress missing return warning
     default:
-      return InteractableElement(name: element.localName!, children: children, node: element, href: '', style: Style(), elementId: "[[No ID]]");
+      return InteractableElement(
+        name: element.localName!,
+        children: children,
+        node: element,
+        href: '',
+        style: Style(),
+        elementId: "[[No ID]]",
+      );
   }
 }

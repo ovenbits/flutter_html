@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_html/html_parser.dart';
 import 'package:flutter_html/src/anchor.dart';
+import 'package:flutter_html/src/css_box_widget.dart';
 import 'package:flutter_html/src/html_elements.dart';
 import 'package:flutter_html/style.dart';
 import 'package:html/dom.dart' as dom;
@@ -17,13 +18,13 @@ abstract class ReplacedElement extends StyledElement {
   PlaceholderAlignment alignment;
 
   ReplacedElement({
-    required String name,
-    required Style style,
-    required String elementId,
+    required super.name,
+    required super.style,
+    required super.elementId,
     List<StyledElement>? children,
-    dom.Element? node,
+    super.node,
     this.alignment = PlaceholderAlignment.aboveBaseline,
-  }) : super(name: name, children: children ?? [], style: style, node: node, elementId: elementId);
+  }) : super(children: children ?? []);
 
   static List<String?> parseMediaSources(List<dom.Element> elements) {
     return elements.where((element) => element.localName == 'source').map((element) {
@@ -44,7 +45,11 @@ class TextContentElement extends ReplacedElement {
     required this.text,
     this.node,
     dom.Element? element,
-  }) : super(name: "[text]", style: style, node: element, elementId: "[[No ID]]");
+  }) : super(
+            name: "[text]",
+            style: style,
+            node: element,
+            elementId: "[[No ID]]");
 
   @override
   String toString() {
@@ -52,61 +57,88 @@ class TextContentElement extends ReplacedElement {
   }
 
   @override
-  Widget? toWidget(_) => null;
+  Widget? toWidget(context) => null;
 }
 
 class EmptyContentElement extends ReplacedElement {
-  EmptyContentElement({String name = "empty"}) : super(name: name, style: Style(), elementId: "[[No ID]]");
+  EmptyContentElement({String name = "empty"})
+      : super(name: name, style: Style(), elementId: "[[No ID]]");
 
   @override
-  Widget? toWidget(_) => null;
+  Widget? toWidget(context) => null;
 }
 
 class RubyElement extends ReplacedElement {
+  @override
   dom.Element element;
 
-  RubyElement({required this.element, required List<StyledElement> children, String name = "ruby"}) : super(name: name, alignment: PlaceholderAlignment.middle, style: Style(), elementId: element.id, children: children);
+  RubyElement({
+    required this.element,
+    required List<StyledElement> children,
+    String name = "ruby",
+  }) : super(
+            name: name,
+            alignment: PlaceholderAlignment.middle,
+            style: Style(),
+            elementId: element.id,
+            children: children);
 
   @override
   Widget toWidget(RenderContext context) {
     StyledElement? node;
     List<Widget> widgets = <Widget>[];
-    final rubySize = context.parser.style['rt']?.fontSize?.size ?? max(9.0, context.style.fontSize!.size! / 2);
+    final rubySize = context.parser.style['rt']?.fontSize?.value ??
+        max(9.0, context.style.fontSize!.value / 2);
     final rubyYPos = rubySize + rubySize / 2;
     List<StyledElement> children = [];
     context.tree.children.forEachIndexed((index, element) {
-      if (!((element is TextContentElement) && (element.text ?? "").trim().isEmpty && index > 0 && index + 1 < context.tree.children.length && !(context.tree.children[index - 1] is TextContentElement) && !(context.tree.children[index + 1] is TextContentElement))) {
+      if (!((element is TextContentElement) &&
+          (element.text ?? "").trim().isEmpty &&
+          index > 0 &&
+          index + 1 < context.tree.children.length &&
+          context.tree.children[index - 1] is! TextContentElement &&
+          context.tree.children[index + 1] is! TextContentElement)) {
         children.add(element);
       }
     });
-    children.forEach((c) {
+    for (var c in children) {
       if (c.name == "rt" && node != null) {
         final widget = Stack(
           alignment: Alignment.center,
           children: <Widget>[
             Container(
-                alignment: Alignment.bottomCenter,
-                child: Center(
-                    child: Transform(
-                        transform: Matrix4.translationValues(0, -(rubyYPos), 0),
-                        child: ContainerSpan(
-                          newContext: RenderContext(
-                            buildContext: context.buildContext,
-                            parser: context.parser,
-                            style: c.style,
-                            tree: c,
-                          ),
-                          style: c.style,
-                          child: Text(c.element!.innerHtml, style: c.style.generateTextStyle(context.buildContext).copyWith(fontSize: rubySize)),
-                        )))),
-            ContainerSpan(newContext: context, style: context.style, child: node is TextContentElement ? Text((node as TextContentElement).text?.trim() ?? "", style: context.style.generateTextStyle(context.buildContext)) : null, children: node is TextContentElement ? null : [context.parser.parseTree(context, node!)]),
+              alignment: Alignment.bottomCenter,
+              child: Center(
+                child: Transform(
+                  transform: Matrix4.translationValues(0, -(rubyYPos), 0),
+                  child: CssBoxWidget(
+                    style: c.style,
+                    child: Text(
+                      c.element!.innerHtml,
+                      style: c.style
+                          .generateTextStyle(context.buildContext)
+                          .copyWith(fontSize: rubySize),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            CssBoxWidget(
+              style: context.style,
+              child: node is TextContentElement
+                  ? Text(
+                      node.text?.trim() ?? "",
+                      style: context.style.generateTextStyle(context.buildContext),
+                    )
+                  : RichText(text: context.parser.parseTree(context, node)),
+            ),
           ],
         );
         widgets.add(widget);
       } else {
         node = c;
       }
-    });
+    }
     return Padding(
       padding: EdgeInsets.only(top: rubySize),
       child: Wrap(
@@ -131,13 +163,19 @@ ReplacedElement parseReplacedElement(
 ) {
   switch (element.localName) {
     case "br":
-      return TextContentElement(text: "\n", style: Style(whiteSpace: WhiteSpace.PRE), element: element, node: element);
+      return TextContentElement(
+        text: "\n",
+        style: Style(whiteSpace: WhiteSpace.pre),
+        element: element,
+        node: element,
+      );
     case "ruby":
       return RubyElement(
         element: element,
         children: children,
       );
     default:
-      return EmptyContentElement(name: element.localName == null ? "[[No Name]]" : element.localName!);
+      return EmptyContentElement(
+          name: element.localName == null ? "[[No Name]]" : element.localName!);
   }
 }

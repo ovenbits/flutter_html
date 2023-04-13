@@ -7,12 +7,14 @@ import 'package:webview_flutter/webview_flutter.dart';
 CustomRender iframeRender({NavigationDelegate? navigationDelegate}) => CustomRender.widget(widget: (context, buildChildren) {
       final sandboxMode = context.tree.element?.attributes["sandbox"];
       final UniqueKey key = UniqueKey();
-      return Container(
-        width: double.tryParse(context.tree.element?.attributes['width'] ?? "") ?? (double.tryParse(context.tree.element?.attributes['height'] ?? "") ?? 150) * 2,
-        height: double.tryParse(context.tree.element?.attributes['height'] ?? "") ?? (double.tryParse(context.tree.element?.attributes['width'] ?? "") ?? 300) / 2,
-        child: ContainerSpan(
+      final givenWidth = double.tryParse(context.tree.element?.attributes['width'] ?? "");
+      final givenHeight = double.tryParse(context.tree.element?.attributes['height'] ?? "");
+      return SizedBox(
+        width: givenWidth ?? (givenHeight ?? 150) * 2,
+        height: givenHeight ?? (givenWidth ?? 300) / 2,
+        child: CssBoxWidget(
           style: context.style,
-          newContext: context,
+          childIsReplaced: true,
           child: WebView(
             initialUrl: context.tree.element?.attributes['src'],
             key: key,

@@ -21,7 +21,7 @@ void main() {
           testNewParser(context);
 
           // The builder function must return a widget.
-          return Placeholder();
+          return const Placeholder();
         },
       ),
     );
@@ -31,7 +31,7 @@ void main() {
 void testNewParser(BuildContext context) {
   HtmlParser.parseHTML("<b>Hello, World!</b>");
 
-  StyledElement tree = HtmlParser.lexDomTree([
+  HtmlParser.lexDomTree(
     HtmlParser.parseHTML("Hello! <b>Hello, World!</b><i>Hello, New World!</i>"),
     [],
     Html.tags,
@@ -46,16 +46,15 @@ void testNewParser(BuildContext context) {
       onImageError: null,
       shrinkWrap: false,
       selectable: true,
-      style: {},
-      customRenders: defaultRenders,
+      style: const {},
+      customRenders: generateDefaultRenders(),
       tagsList: Html.tags,
       selectionControls: null,
       scrollPhysics: null,
-    )
-  ]);
-  print(tree.toString());
+    ),
+  );
 
-  tree = HtmlParser.lexDomTree([
+  HtmlParser.lexDomTree(
     HtmlParser.parseHTML("Hello, World! <a href='https://example.com'>This is a link</a>"),
     [],
     Html.tags,
@@ -70,23 +69,22 @@ void testNewParser(BuildContext context) {
       onImageError: null,
       shrinkWrap: false,
       selectable: true,
-      style: {},
-      customRenders: defaultRenders,
+      style: const {},
+      customRenders: generateDefaultRenders(),
       tagsList: Html.tags,
       selectionControls: null,
       scrollPhysics: null,
-    )
-  ]);
-  print(tree.toString());
+    ),
+  );
 
-  tree = HtmlParser.lexDomTree([
-    HtmlParser.parseHTML("<img src='https://image.example.com' />"),
+  HtmlParser.lexDomTree(
+    HtmlParser.parseHTML("<img alt='' src='https://image.example.com' />"),
     [],
     Html.tags,
     context,
     HtmlParser(
       key: null,
-      htmlData: HtmlParser.parseHTML("<img src='https://image.example.com' />"),
+      htmlData: HtmlParser.parseHTML("<img alt='' src='https://image.example.com' />"),
       onLinkTap: null,
       onAnchorTap: null,
       onImageTap: null,
@@ -94,23 +92,22 @@ void testNewParser(BuildContext context) {
       onImageError: null,
       shrinkWrap: false,
       selectable: true,
-      style: {},
-      customRenders: defaultRenders,
+      style: const {},
+      customRenders: generateDefaultRenders(),
       tagsList: Html.tags,
       selectionControls: null,
       scrollPhysics: null,
-    )
-  ]);
-  print(tree.toString());
+    ),
+  );
 
-  tree = HtmlParser.lexDomTree([
-    HtmlParser.parseHTML("<div><div><div><div><a href='link'>Link</a><div>Hello, World! <b>Bold and <i>Italic</i></b></div></div></div></div></div>"),
+  HtmlParser.lexDomTree(
+    HtmlParser.parseHTML("<div><div><div><div><a href='https://example.com'>Link</a><div>Hello, World! <b>Bold and <i>Italic</i></b></div></div></div></div></div>"),
     [],
     Html.tags,
     context,
     HtmlParser(
       key: null,
-      htmlData: HtmlParser.parseHTML("<div><div><div><div><a href='link'>Link</a><div>Hello, World! <b>Bold and <i>Italic</i></b></div></div></div></div></div>"),
+      htmlData: HtmlParser.parseHTML("<div><div><div><div><a href='https://example.com'>Link</a><div>Hello, World! <b>Bold and <i>Italic</i></b></div></div></div></div></div>"),
       onLinkTap: null,
       onAnchorTap: null,
       onImageTap: null,
@@ -118,14 +115,13 @@ void testNewParser(BuildContext context) {
       onImageError: null,
       shrinkWrap: false,
       selectable: true,
-      style: {},
-      customRenders: defaultRenders,
+      style: const {},
+      customRenders: generateDefaultRenders(),
       tagsList: Html.tags,
       selectionControls: null,
       scrollPhysics: null,
-    )
-  ]);
-  print(tree.toString());
+    ),
+  );
 
   /*ReplacedElement videoContentElement = parseReplacedElement(
     HtmlParser.parseHTML("""
@@ -167,7 +163,7 @@ void testNewParser(BuildContext context) {
   }*/
 
   Style style1 = Style(
-    display: Display.BLOCK,
+    display: Display.block,
     fontWeight: FontWeight.bold,
   );
 
@@ -179,7 +175,7 @@ void testNewParser(BuildContext context) {
 
   Style finalStyle = style1.merge(style2);
 
-  expect(finalStyle.display, equals(Display.BLOCK));
+  expect(finalStyle.display, equals(Display.block));
   expect(finalStyle.before, equals("* "));
   expect(finalStyle.direction, equals(TextDirection.rtl));
   expect(finalStyle.fontStyle, equals(FontStyle.italic));

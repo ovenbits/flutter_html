@@ -8,6 +8,7 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_html/src/utils.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+/// The CustomRender function that renders the <svg> HTML tag.
 CustomRender svgTagRender() => CustomRender.widget(widget: (context, buildChildren) {
       return Builder(
           key: context.key,
@@ -28,10 +29,11 @@ CustomRender svgTagRender() => CustomRender.widget(widget: (context, buildChildr
           });
     });
 
+/// The CustomRender function that renders an <img> tag with hardcoded svg data.
 CustomRender svgDataImageRender() => CustomRender.widget(widget: (context, buildChildren) {
       final dataUri = _dataUriFormat.firstMatch(_src(context.tree.element?.attributes.cast() ?? <String, String>{})!);
       final data = dataUri?.namedGroup('data');
-      if (data == null) return Container(height: 0, width: 0);
+      if (data == null) return const SizedBox(height: 0, width: 0);
       return Builder(
           key: context.key,
           builder: (buildContext) {
@@ -53,9 +55,10 @@ CustomRender svgDataImageRender() => CustomRender.widget(widget: (context, build
           });
     });
 
+/// The CustomRender function that renders an <img> tag with a network svg image.
 CustomRender svgNetworkImageRender() => CustomRender.widget(widget: (context, buildChildren) {
       if (context.tree.element?.attributes["src"] == null) {
-        return Container(height: 0, width: 0);
+        return const SizedBox(height: 0, width: 0);
       }
       return Builder(
           key: context.key,
@@ -76,9 +79,10 @@ CustomRender svgNetworkImageRender() => CustomRender.widget(widget: (context, bu
           });
     });
 
+/// The CustomRender function that renders an <img> tag with an svg asset in your app
 CustomRender svgAssetImageRender() => CustomRender.widget(widget: (context, buildChildren) {
       if (_src(context.tree.element?.attributes.cast() ?? <String, String>{}) == null) {
-        return Container(height: 0, width: 0);
+        return const SizedBox(height: 0, width: 0);
       }
       final assetPath = _src(context.tree.element!.attributes.cast())!.replaceFirst('asset:', '');
       return Builder(
@@ -96,18 +100,21 @@ CustomRender svgAssetImageRender() => CustomRender.widget(widget: (context, buil
           });
     });
 
+/// The CustomRenderMatcher for the <svg> HTML tag.
 CustomRenderMatcher svgTagMatcher() => (context) {
       return context.tree.element?.localName == "svg";
     };
 
+/// A CustomRenderMatcher for an <img> tag with encoded svg data.
 CustomRenderMatcher svgDataUriMatcher({String? encoding = 'base64', String? mime = 'image/svg+xml'}) => (context) {
       if (_src(context.tree.element?.attributes.cast() ?? <String, String>{}) == null) return false;
       final dataUri = _dataUriFormat.firstMatch(_src(context.tree.element?.attributes.cast() ?? <String, String>{})!);
       return context.tree.element?.localName == "img" && dataUri != null && (mime == null || dataUri.namedGroup('mime') == mime) && (encoding == null || dataUri.namedGroup('encoding') == ';$encoding');
     };
 
+/// A CustomRenderMatcher for an <img> tag with an svg tag over the network
 CustomRenderMatcher svgNetworkSourceMatcher({
-  List<String> schemas: const ["https", "http"],
+  List<String> schemas = const ["https", "http"],
   List<String>? domains,
   String? extension = "svg",
 }) =>
@@ -121,9 +128,10 @@ CustomRenderMatcher svgNetworkSourceMatcher({
       }
     };
 
+/// A CustomRenderMatcher for an <img> tag with an in-app svg asset
 CustomRenderMatcher svgAssetUriMatcher() => (context) => context.tree.element?.localName == "img" && _src(context.tree.element?.attributes.cast() ?? <String, String>{}) != null && _src(context.tree.element?.attributes.cast() ?? <String, String>{})!.startsWith("asset:") && _src(context.tree.element?.attributes.cast() ?? <String, String>{})!.endsWith(".svg");
 
-final _dataUriFormat = RegExp("^(?<scheme>data):(?<mime>image\/[\\w\+\-\.]+)(?<encoding>;base64)?\,(?<data>.*)");
+final _dataUriFormat = RegExp("^(?<scheme>data):(?<mime>image\\/[\\w\\+\\-\\.]+)(?<encoding>;base64)?\\,(?<data>.*)");
 
 String? _src(Map<String, String> attributes) {
   return attributes["src"];

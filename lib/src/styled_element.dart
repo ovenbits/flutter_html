@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_html/src/css_parser.dart';
 import 'package:flutter_html/style.dart';
@@ -5,6 +7,7 @@ import 'package:html/dom.dart' as dom;
 //TODO(Sub6Resources): don't use the internal code of the html package as it may change unexpectedly.
 //ignore: implementation_imports
 import 'package:html/src/query_selector.dart';
+import 'package:list_counter/list_counter.dart';
 
 /// A [StyledElement] applies a style to all of its children.
 class StyledElement {
@@ -14,6 +17,7 @@ class StyledElement {
   List<StyledElement> children;
   Style style;
   final dom.Element? _node;
+  final ListQueue<Counter> counters = ListQueue<Counter>();
 
   StyledElement({
     this.name = "[[No name]]",
@@ -22,7 +26,7 @@ class StyledElement {
     required this.children,
     required this.style,
     required dom.Element? node,
-  }) : this._node = node;
+  }) : _node = node;
 
   bool matchesSelector(String selector) => (_node != null && matches(_node!, selector)) || name == selector;
 
@@ -30,21 +34,24 @@ class StyledElement {
       _node?.attributes.map((key, value) {
         return MapEntry(key.toString(), value);
       }) ??
-      Map<String, String>();
+      <String, String>{};
 
   dom.Element? get element => _node;
 
   @override
   String toString() {
     String selfData = "[$name] ${children.length} ${elementClasses.isNotEmpty == true ? 'C:${elementClasses.toString()}' : ''}${elementId.isNotEmpty == true ? 'ID: $elementId' : ''}";
-    children.forEach((child) {
+    for (var child in children) {
       selfData += ("\n${child.toString()}").replaceAll(RegExp("^", multiLine: true), "-");
-    });
+    }
     return selfData;
   }
 }
 
-StyledElement parseStyledElement(dom.Element element, List<StyledElement> children) {
+StyledElement parseStyledElement(
+  dom.Element element,
+  List<StyledElement> children,
+) {
   StyledElement styledElement = StyledElement(
     name: element.localName!,
     elementId: element.id,
@@ -66,12 +73,12 @@ StyledElement parseStyledElement(dom.Element element, List<StyledElement> childr
       continue italics;
     case "article":
       styledElement.style = Style(
-        display: Display.BLOCK,
+        display: Display.block,
       );
       break;
     case "aside":
       styledElement.style = Style(
-        display: Display.BLOCK,
+        display: Display.block,
       );
       break;
     bold:
@@ -95,26 +102,26 @@ StyledElement parseStyledElement(dom.Element element, List<StyledElement> childr
       //TODO(Sub6Resources) this is a workaround for collapsing margins. Remove.
       if (element.parent!.localName == "blockquote") {
         styledElement.style = Style(
-          margin: const EdgeInsets.only(left: 40.0, right: 40.0, bottom: 14.0),
-          display: Display.BLOCK,
+          margin: Margins.only(left: 40.0, right: 40.0, bottom: 14.0),
+          display: Display.block,
         );
       } else {
         styledElement.style = Style(
-          margin: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 14.0),
-          display: Display.BLOCK,
+          margin: Margins.symmetric(horizontal: 40.0, vertical: 14.0),
+          display: Display.block,
         );
       }
       break;
     case "body":
       styledElement.style = Style(
-        margin: EdgeInsets.all(8.0),
-        display: Display.BLOCK,
+        margin: Margins.all(8.0),
+        display: Display.block,
       );
       break;
     case "center":
       styledElement.style = Style(
         alignment: Alignment.center,
-        display: Display.BLOCK,
+        display: Display.block,
       );
       break;
     case "cite":
@@ -127,8 +134,8 @@ StyledElement parseStyledElement(dom.Element element, List<StyledElement> childr
       break;
     case "dd":
       styledElement.style = Style(
-        margin: EdgeInsets.only(left: 40.0),
-        display: Display.BLOCK,
+        margin: Margins.only(left: 40.0),
+        display: Display.block,
       );
       break;
     strikeThrough:
@@ -141,37 +148,37 @@ StyledElement parseStyledElement(dom.Element element, List<StyledElement> childr
       continue italics;
     case "div":
       styledElement.style = Style(
-        margin: EdgeInsets.all(0),
-        display: Display.BLOCK,
+        margin: Margins.all(0),
+        display: Display.block,
       );
       break;
     case "dl":
       styledElement.style = Style(
-        margin: EdgeInsets.symmetric(vertical: 14.0),
-        display: Display.BLOCK,
+        margin: Margins.symmetric(vertical: 14.0),
+        display: Display.block,
       );
       break;
     case "dt":
       styledElement.style = Style(
-        display: Display.BLOCK,
+        display: Display.block,
       );
       break;
     case "em":
       continue italics;
     case "figcaption":
       styledElement.style = Style(
-        display: Display.BLOCK,
+        display: Display.block,
       );
       break;
     case "figure":
       styledElement.style = Style(
-        margin: EdgeInsets.symmetric(vertical: 14.0, horizontal: 40.0),
-        display: Display.BLOCK,
+        margin: Margins.symmetric(vertical: 14.0, horizontal: 40.0),
+        display: Display.block,
       );
       break;
     case "footer":
       styledElement.style = Style(
-        display: Display.BLOCK,
+        display: Display.block,
       );
       break;
     case "font":
@@ -187,69 +194,71 @@ StyledElement parseStyledElement(dom.Element element, List<StyledElement> childr
       break;
     case "h1":
       styledElement.style = Style(
-        fontSize: FontSize.xxLarge,
+        fontSize: FontSize(2, Unit.em),
         fontWeight: FontWeight.bold,
-        margin: EdgeInsets.symmetric(vertical: 18.67),
-        display: Display.BLOCK,
+        margin: Margins.symmetric(vertical: 0.67, unit: Unit.em),
+        display: Display.block,
       );
       break;
     case "h2":
       styledElement.style = Style(
-        fontSize: FontSize.xLarge,
+        fontSize: FontSize(1.5, Unit.em),
         fontWeight: FontWeight.bold,
-        margin: EdgeInsets.symmetric(vertical: 17.5),
-        display: Display.BLOCK,
+        margin: Margins.symmetric(vertical: 0.83, unit: Unit.em),
+        display: Display.block,
       );
       break;
     case "h3":
       styledElement.style = Style(
-        fontSize: FontSize(16.38),
+        fontSize: FontSize(1.17, Unit.em),
         fontWeight: FontWeight.bold,
-        margin: EdgeInsets.symmetric(vertical: 16.5),
-        display: Display.BLOCK,
+        margin: Margins.symmetric(vertical: 1, unit: Unit.em),
+        display: Display.block,
       );
       break;
     case "h4":
       styledElement.style = Style(
-        fontSize: FontSize.medium,
         fontWeight: FontWeight.bold,
-        margin: EdgeInsets.symmetric(vertical: 18.5),
-        display: Display.BLOCK,
+        margin: Margins.symmetric(vertical: 1.33, unit: Unit.em),
+        display: Display.block,
       );
       break;
     case "h5":
       styledElement.style = Style(
-        fontSize: FontSize(11.62),
+        fontSize: FontSize(0.83, Unit.em),
         fontWeight: FontWeight.bold,
-        margin: EdgeInsets.symmetric(vertical: 19.25),
-        display: Display.BLOCK,
+        margin: Margins.symmetric(vertical: 1.67, unit: Unit.em),
+        display: Display.block,
       );
       break;
     case "h6":
       styledElement.style = Style(
-        fontSize: FontSize(9.38),
+        fontSize: FontSize(0.67, Unit.em),
         fontWeight: FontWeight.bold,
-        margin: EdgeInsets.symmetric(vertical: 22),
-        display: Display.BLOCK,
+        margin: Margins.symmetric(vertical: 2.33, unit: Unit.em),
+        display: Display.block,
       );
       break;
     case "header":
       styledElement.style = Style(
-        display: Display.BLOCK,
+        display: Display.block,
       );
       break;
     case "hr":
       styledElement.style = Style(
-        margin: EdgeInsets.symmetric(vertical: 7.0),
-        width: double.infinity,
-        height: 1,
-        backgroundColor: Colors.black,
-        display: Display.BLOCK,
+        margin: Margins(
+          top: Margin(0.5, Unit.em),
+          bottom: Margin(0.5, Unit.em),
+          left: Margin.auto(),
+          right: Margin.auto(),
+        ),
+        border: Border.all(),
+        display: Display.block,
       );
       break;
     case "html":
       styledElement.style = Style(
-        display: Display.BLOCK,
+        display: Display.block,
       );
       break;
     italics:
@@ -264,12 +273,12 @@ StyledElement parseStyledElement(dom.Element element, List<StyledElement> childr
       continue monospace;
     case "li":
       styledElement.style = Style(
-        display: Display.LIST_ITEM,
+        display: Display.listItem,
       );
       break;
     case "main":
       styledElement.style = Style(
-        display: Display.BLOCK,
+        display: Display.block,
       );
       break;
     case "mark":
@@ -280,43 +289,34 @@ StyledElement parseStyledElement(dom.Element element, List<StyledElement> childr
       break;
     case "nav":
       styledElement.style = Style(
-        display: Display.BLOCK,
+        display: Display.block,
       );
       break;
     case "noscript":
       styledElement.style = Style(
-        display: Display.BLOCK,
+        display: Display.block,
       );
       break;
     case "ol":
     case "ul":
-      //TODO(Sub6Resources): This is a workaround for collapsed margins. Remove.
-      if (element.parent!.localName == "li") {
-        styledElement.style = Style(
-//          margin: EdgeInsets.only(left: 30.0),
-          display: Display.BLOCK,
-          listStyleType: element.localName == "ol" ? ListStyleType.DECIMAL : ListStyleType.DISC,
-        );
-      } else {
-        styledElement.style = Style(
-//          margin: EdgeInsets.only(left: 30.0, top: 14.0, bottom: 14.0),
-          display: Display.BLOCK,
-          listStyleType: element.localName == "ol" ? ListStyleType.DECIMAL : ListStyleType.DISC,
-        );
-      }
+      styledElement.style = Style(
+        display: Display.block,
+        listStyleType: element.localName == "ol" ? ListStyleType.decimal : ListStyleType.disc,
+        padding: const EdgeInsets.only(left: 40),
+      );
       break;
     case "p":
       styledElement.style = Style(
-        margin: EdgeInsets.symmetric(vertical: 14.0),
-        display: Display.BLOCK,
+        margin: Margins.symmetric(vertical: 1, unit: Unit.em),
+        display: Display.block,
       );
       break;
     case "pre":
       styledElement.style = Style(
         fontFamily: 'monospace',
-        margin: EdgeInsets.symmetric(vertical: 14.0),
-        whiteSpace: WhiteSpace.PRE,
-        display: Display.BLOCK,
+        margin: Margins.symmetric(vertical: 14.0),
+        whiteSpace: WhiteSpace.pre,
+        display: Display.block,
       );
       break;
     case "q":
@@ -331,7 +331,7 @@ StyledElement parseStyledElement(dom.Element element, List<StyledElement> childr
       continue monospace;
     case "section":
       styledElement.style = Style(
-        display: Display.BLOCK,
+        display: Display.block,
       );
       break;
     case "small":
@@ -346,13 +346,13 @@ StyledElement parseStyledElement(dom.Element element, List<StyledElement> childr
     case "sub":
       styledElement.style = Style(
         fontSize: FontSize.smaller,
-        verticalAlign: VerticalAlign.SUB,
+        verticalAlign: VerticalAlign.sub,
       );
       break;
     case "sup":
       styledElement.style = Style(
         fontSize: FontSize.smaller,
-        verticalAlign: VerticalAlign.SUPER,
+        verticalAlign: VerticalAlign.sup,
       );
       break;
     case "tt":
@@ -398,4 +398,12 @@ FontSize numberToFontSize(String num) {
     return numberToFontSize((3 - relativeNum).toString());
   }
   return FontSize.medium;
+}
+
+extension DeepCopy on ListQueue<Counter> {
+  ListQueue<Counter> deepCopy() {
+    return ListQueue<Counter>.from(map((counter) {
+      return Counter(counter.name, counter.value);
+    }));
+  }
 }
