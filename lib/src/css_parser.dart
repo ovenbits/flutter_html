@@ -202,22 +202,6 @@ Style declarationsToStyle(Map<String, List<css.Expression>> declarations) {
             }
           }
           break;
-        case '-epub-text-align-last':
-          if (value.first is css.Identifier) {
-            css.Identifier identifier = value.first as css.Identifier;
-            switch (identifier.name) {
-              case 'left':
-                style.alignment = Alignment.centerLeft;
-                break;
-              case 'right':
-                style.alignment = Alignment.centerRight;
-                break;
-              case 'center':
-                style.alignment = Alignment.center;
-                break;
-            }
-          }
-          break;
         case 'list-style':
           css.LiteralTerm? position = value.firstWhereOrNull((e) => e is css.LiteralTerm && (e.text == "outside" || e.text == "inside")) as css.LiteralTerm?;
           css.UriTerm? image = value.firstWhereOrNull((e) => e is css.UriTerm) as css.UriTerm?;
@@ -968,13 +952,13 @@ class ExpressionMapping {
         if (color != null && ExpressionMapping.expressionToColor(color) != null) {
           shadow.add(Shadow(
             color: expressionToColor(color)!,
-            offset: Offset(double.tryParse((offsetX as css.LiteralTerm).text.replaceAll(nonNumberRegex, ''))!, double.tryParse((offsetY as css.LiteralTerm).text.replaceAll(nonNumberRegex, ''))!),
-            blurRadius: (blurRadius is css.LiteralTerm) ? double.tryParse((blurRadius as css.LiteralTerm).text.replaceAll(nonNumberRegex, ''))! : 0.0,
+            offset: Offset(double.tryParse((offsetX).text.replaceAll(nonNumberRegex, ''))!, double.tryParse((offsetY).text.replaceAll(nonNumberRegex, ''))!),
+            blurRadius: (blurRadius is css.LiteralTerm) ? double.tryParse((blurRadius).text.replaceAll(nonNumberRegex, ''))! : 0.0,
           ));
         } else {
           shadow.add(Shadow(
-            offset: Offset(double.tryParse((offsetX as css.LiteralTerm).text.replaceAll(nonNumberRegex, ''))!, double.tryParse((offsetY as css.LiteralTerm).text.replaceAll(nonNumberRegex, ''))!),
-            blurRadius: (blurRadius is css.LiteralTerm) ? double.tryParse((blurRadius as css.LiteralTerm).text.replaceAll(nonNumberRegex, ''))! : 0.0,
+            offset: Offset(double.tryParse((offsetX).text.replaceAll(nonNumberRegex, ''))!, double.tryParse((offsetY).text.replaceAll(nonNumberRegex, ''))!),
+            blurRadius: (blurRadius is css.LiteralTerm) ? double.tryParse((blurRadius).text.replaceAll(nonNumberRegex, ''))! : 0.0,
           ));
         }
       }

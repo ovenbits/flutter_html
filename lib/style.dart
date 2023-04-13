@@ -272,24 +272,22 @@ class Style {
     this.textOverflow,
     this.textTransform = TextTransform.none,
   }) {
-    if (alignment == null &&
-        (display == Display.block || display == Display.listItem)) {
+    if (alignment == null && (display == Display.block || display == Display.listItem)) {
       alignment = Alignment.centerLeft;
     }
   }
 
   static Map<String, Style> fromThemeData(ThemeData theme) => {
-        'h1': Style.fromTextStyle(theme.textTheme.headline1!),
-        'h2': Style.fromTextStyle(theme.textTheme.headline2!),
-        'h3': Style.fromTextStyle(theme.textTheme.headline3!),
-        'h4': Style.fromTextStyle(theme.textTheme.headline4!),
-        'h5': Style.fromTextStyle(theme.textTheme.headline5!),
-        'h6': Style.fromTextStyle(theme.textTheme.headline6!),
-        'body': Style.fromTextStyle(theme.textTheme.bodyText2!),
+        'h1': Style.fromTextStyle(theme.textTheme.displayLarge!),
+        'h2': Style.fromTextStyle(theme.textTheme.displayMedium!),
+        'h3': Style.fromTextStyle(theme.textTheme.displaySmall!),
+        'h4': Style.fromTextStyle(theme.textTheme.headlineMedium!),
+        'h5': Style.fromTextStyle(theme.textTheme.headlineSmall!),
+        'h6': Style.fromTextStyle(theme.textTheme.titleLarge!),
+        'body': Style.fromTextStyle(theme.textTheme.bodyMedium!),
       };
 
-  static Map<String, Style> fromCss(
-      String css, OnCssParseError? onCssParseError) {
+  static Map<String, Style> fromCss(String css, OnCssParseError? onCssParseError) {
     final declarations = parseExternalCss(css, onCssParseError);
     Map<String, Style> styleMap = {};
     declarations.forEach((key, value) {
@@ -379,16 +377,12 @@ class Style {
 
     LineHeight? finalLineHeight = child.lineHeight != null
         ? child.lineHeight?.units == "length"
-            ? LineHeight(child.lineHeight!.size! /
-                (finalFontSize == null ? 14 : finalFontSize.value) *
-                1.2)
+            ? LineHeight(child.lineHeight!.size! / (finalFontSize == null ? 14 : finalFontSize.value) * 1.2)
             : child.lineHeight
         : lineHeight;
 
     return child.copyWith(
-      backgroundColor: child.backgroundColor != Colors.transparent
-          ? child.backgroundColor
-          : backgroundColor,
+      backgroundColor: child.backgroundColor != Colors.transparent ? child.backgroundColor : backgroundColor,
       color: child.color ?? color,
       direction: child.direction ?? direction,
       display: display == Display.none ? display : child.display,
@@ -512,8 +506,7 @@ class Style {
     fontFamily = textStyle.fontFamily;
     fontFamilyFallback = textStyle.fontFamilyFallback;
     fontFeatureSettings = textStyle.fontFeatures;
-    fontSize =
-        textStyle.fontSize != null ? FontSize(textStyle.fontSize!) : null;
+    fontSize = textStyle.fontSize != null ? FontSize(textStyle.fontSize!) : null;
     fontStyle = textStyle.fontStyle;
     fontWeight = textStyle.fontWeight;
     letterSpacing = textStyle.letterSpacing;

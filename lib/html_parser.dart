@@ -153,7 +153,7 @@ class HtmlParser extends StatefulWidget {
       children: <StyledElement>[],
       node: html,
       //TODO(Sub6Resources): This seems  difficult to customize
-      style: Style.fromTextStyle(Theme.of(context).textTheme.bodyText2!),
+      style: Style.fromTextStyle(Theme.of(context).textTheme.bodyMedium!),
     );
 
     for (var node in html.nodes) {
@@ -217,7 +217,7 @@ class HtmlParser extends StatefulWidget {
               buildContext: context,
               parser: parser,
               tree: tree,
-              style: Style.fromTextStyle(Theme.of(context).textTheme.bodyText2!),
+              style: Style.fromTextStyle(Theme.of(context).textTheme.bodyMedium!),
             ),
           )) {
             return tree;
