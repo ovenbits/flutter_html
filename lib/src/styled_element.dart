@@ -30,6 +30,8 @@ class StyledElement {
 
   bool matchesSelector(String selector) => (_node != null && matches(_node!, selector)) || name == selector;
 
+  dom.Element? get internalNode => _node;
+
   Map<String, String> get attributes =>
       _node?.attributes.map((key, value) {
         return MapEntry(key.toString(), value);

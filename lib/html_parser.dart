@@ -22,11 +22,21 @@ typedef OnTap = void Function(
   Map<String, String> attributes,
   dom.Element? element,
 );
+
 typedef OnCssParseError = String? Function(
   String css,
   List<cssparser.Message> errors,
 );
+
 typedef OnContentRendered = Function(Size size);
+typedef SkipStyleFunction = bool Function(StyleAssignmentMethod method, StyledElement tree, Style style);
+
+enum StyleAssignmentMethod {
+  external,
+  inline,
+  custom,
+  cascade;
+}
 
 class HtmlParser extends StatefulWidget {
   final dom.Element htmlData;
@@ -48,6 +58,7 @@ class HtmlParser extends StatefulWidget {
   final Widget? loadingPlaceholder;
   final OnContentRendered? onContentRendered;
   final double? textScaleFactor;
+  final SkipStyleFunction? shouldSkipStyle;
 
   final Map<String, Size> cachedImageSizes = {};
 
@@ -70,6 +81,7 @@ class HtmlParser extends StatefulWidget {
     this.loadingPlaceholder,
     this.onContentRendered,
     this.textScaleFactor,
+    this.shouldSkipStyle,
   }) : internalOnAnchorTap = onAnchorTap ?? (key != null ? _handleAnchorTap(key, onLinkTap) : onLinkTap);
 
   /// As the widget [build]s, the HTML data is processed into a tree of [StyledElement]s,
@@ -251,48 +263,58 @@ class HtmlParser extends StatefulWidget {
     }
   }
 
-  static StyledElement _applyExternalCss(Map<String, Map<String, List<css.Expression>>> declarations, StyledElement tree) {
-    declarations.forEach((key, style) {
+  static StyledElement _applyExternalCss(Map<String, Map<String, List<css.Expression>>> declarations, StyledElement tree, SkipStyleFunction? shouldSkipStyle) {
+    declarations.forEach((key, declaration) {
       try {
         if (tree.matchesSelector(key)) {
-          tree.style = tree.style.merge(declarationsToStyle(style));
+          final style = declarationsToStyle(declaration);
+          final skip = shouldSkipStyle != null ? shouldSkipStyle(StyleAssignmentMethod.external, tree, style) : false;
+          if (!skip) {
+            tree.style = tree.style.merge(style);
+          }
         }
       } catch (_) {}
     });
 
     for (var element in tree.children) {
-      _applyExternalCss(declarations, element);
+      _applyExternalCss(declarations, element, shouldSkipStyle);
     }
 
     return tree;
   }
 
-  static StyledElement _applyInlineStyles(StyledElement tree, OnCssParseError? errorHandler) {
+  static StyledElement _applyInlineStyles(StyledElement tree, OnCssParseError? errorHandler, SkipStyleFunction? shouldSkipStyle) {
     if (tree.attributes.containsKey("style")) {
       final newStyle = inlineCssToStyle(tree.attributes['style'], errorHandler);
       if (newStyle != null) {
-        tree.style = tree.style.merge(newStyle);
+        final skip = shouldSkipStyle != null ? shouldSkipStyle(StyleAssignmentMethod.inline, tree, newStyle) : false;
+        if (!skip) {
+          tree.style = tree.style.merge(newStyle);
+        }
       }
     }
 
     for (var element in tree.children) {
-      _applyInlineStyles(element, errorHandler);
+      _applyInlineStyles(element, errorHandler, shouldSkipStyle);
     }
     return tree;
   }
 
   /// [applyCustomStyles] applies the [Style] objects passed into the [Html]
   /// widget onto the [StyledElement] tree, no cascading of styles is done at this point.
-  static StyledElement _applyCustomStyles(Map<String, Style> style, StyledElement tree) {
+  static StyledElement _applyCustomStyles(Map<String, Style> style, StyledElement tree, SkipStyleFunction? shouldSkipStyle) {
     style.forEach((key, style) {
       try {
         if (tree.matchesSelector(key)) {
-          tree.style = tree.style.merge(style);
+          final skip = shouldSkipStyle != null ? shouldSkipStyle(StyleAssignmentMethod.custom, tree, style) : false;
+          if (!skip) {
+            tree.style = tree.style.merge(style);
+          }
         }
       } catch (_) {}
     });
     for (var element in tree.children) {
-      _applyCustomStyles(style, element);
+      _applyCustomStyles(style, element, shouldSkipStyle);
     }
 
     return tree;
@@ -300,10 +322,14 @@ class HtmlParser extends StatefulWidget {
 
   /// [_cascadeStyles] cascades all of the inherited styles down the tree, applying them to each
   /// child that doesn't specify a different style.
-  static StyledElement _cascadeStyles(Map<String, Style> style, StyledElement tree) {
+  static StyledElement _cascadeStyles(Map<String, Style> style, StyledElement tree, SkipStyleFunction? shouldSkipStyle) {
     for (var child in tree.children) {
-      child.style = tree.style.copyOnlyInherited(child.style);
-      _cascadeStyles(style, child);
+      final newStyle = tree.style.copyOnlyInherited(child.style);
+      final skip = shouldSkipStyle != null ? shouldSkipStyle(StyleAssignmentMethod.cascade, tree, newStyle) : false;
+      if (!skip) {
+        child.style = newStyle;
+      }
+      _cascadeStyles(style, child, shouldSkipStyle);
     }
 
     return tree;
@@ -311,16 +337,16 @@ class HtmlParser extends StatefulWidget {
 
   /// [styleTree] takes the lexed [StyleElement] tree and applies external,
   /// inline, and custom CSS/Flutter styles, and then cascades the styles down the tree.
-  static StyledElement styleTree(StyledElement tree, dom.Element htmlData, Map<String, Style> style, OnCssParseError? onCssParseError) {
+  static StyledElement styleTree(StyledElement tree, dom.Element htmlData, Map<String, Style> style, OnCssParseError? onCssParseError, SkipStyleFunction? shouldSkipStyle) {
     Map<String, Map<String, List<css.Expression>>> declarations = _getExternalCssDeclarations(htmlData.getElementsByTagName("style"), onCssParseError);
 
     StyledElement? externalCssStyledTree;
     if (declarations.isNotEmpty) {
-      externalCssStyledTree = _applyExternalCss(declarations, tree);
+      externalCssStyledTree = _applyExternalCss(declarations, tree, shouldSkipStyle);
     }
-    tree = _applyInlineStyles(externalCssStyledTree ?? tree, onCssParseError);
-    tree = _applyCustomStyles(style, tree);
-    tree = _cascadeStyles(style, tree);
+    tree = _applyInlineStyles(externalCssStyledTree ?? tree, onCssParseError, shouldSkipStyle);
+    tree = _applyCustomStyles(style, tree, shouldSkipStyle);
+    tree = _cascadeStyles(style, tree, shouldSkipStyle);
     return tree;
   }
 
@@ -948,7 +974,13 @@ class _HtmlParserState extends State<HtmlParser> {
           widget,
         );
         // Styling Step
-        StyledElement styledTree = HtmlParser.styleTree(lexedTree, widget.htmlData, widget.style, widget.onCssParseError);
+        StyledElement styledTree = HtmlParser.styleTree(
+          lexedTree,
+          widget.htmlData,
+          widget.style,
+          widget.onCssParseError,
+          widget.shouldSkipStyle,
+        );
 
         // Processing Step
         StyledElement processedTree = HtmlParser.processTree(styledTree, MediaQuery.of(context).devicePixelRatio);

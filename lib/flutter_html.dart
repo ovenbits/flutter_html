@@ -64,6 +64,7 @@ class Html extends StatefulWidget {
     this.loadingPlaceholder,
     this.onContentRendered,
     this.textScaleFactor,
+    this.shouldSkipStyle,
   })  : documentElement = null,
         assert(data != null),
         _anchorKey = anchorKey ?? GlobalKey(),
@@ -85,6 +86,7 @@ class Html extends StatefulWidget {
     this.loadingPlaceholder,
     this.onContentRendered,
     this.textScaleFactor,
+    this.shouldSkipStyle,
   })  : data = null,
         assert(document != null),
         documentElement = document!.documentElement,
@@ -107,6 +109,7 @@ class Html extends StatefulWidget {
     this.loadingPlaceholder,
     this.onContentRendered,
     this.textScaleFactor,
+    this.shouldSkipStyle,
   })  : data = null,
         assert(documentElement != null),
         _anchorKey = anchorKey ?? GlobalKey(),
@@ -150,6 +153,10 @@ class Html extends StatefulWidget {
 
   /// An API that allows you to override the default style for any HTML element
   final Map<String, Style> style;
+
+  /// Could be used to control style assignment during parsing HTML tree
+  /// Note that this variable should be set with care, as skipping styles may result in unintended formatting or layout issues.
+  final SkipStyleFunction? shouldSkipStyle;
 
   final Widget? loadingPlaceholder;
   final OnContentRendered? onContentRendered;
@@ -206,6 +213,7 @@ class _HtmlState extends State<Html> {
         loadingPlaceholder: widget.loadingPlaceholder,
         onContentRendered: widget.onContentRendered,
         textScaleFactor: widget.textScaleFactor,
+        shouldSkipStyle: widget.shouldSkipStyle,
       ),
     );
   }
@@ -256,6 +264,7 @@ class SelectableHtml extends StatefulWidget {
     this.tagsList = const [],
     this.selectionControls,
     this.scrollPhysics,
+    this.shouldSkipStyle,
   })  : documentElement = null,
         assert(data != null),
         _anchorKey = anchorKey ?? GlobalKey(),
@@ -274,6 +283,7 @@ class SelectableHtml extends StatefulWidget {
     this.tagsList = const [],
     this.selectionControls,
     this.scrollPhysics,
+    this.shouldSkipStyle,
   })  : data = null,
         assert(document != null),
         documentElement = document!.documentElement,
@@ -293,6 +303,7 @@ class SelectableHtml extends StatefulWidget {
     this.tagsList = const [],
     this.selectionControls,
     this.scrollPhysics,
+    this.shouldSkipStyle,
   })  : data = null,
         assert(documentElement != null),
         _anchorKey = anchorKey ?? GlobalKey(),
@@ -340,6 +351,10 @@ class SelectableHtml extends StatefulWidget {
   /// fallback to the default rendering.
   final Map<CustomRenderMatcher, SelectableCustomRender> customRenders;
 
+  /// Could be used to control style assignment during parsing HTML tree
+  /// Note that this variable should be set with care, as skipping styles may result in unintended formatting or layout issues.
+  final SkipStyleFunction? shouldSkipStyle;
+
   static List<String> get tags => List<String>.from(HtmlElements.selectableElements);
 
   @override
@@ -376,6 +391,7 @@ class _SelectableHtmlState extends State<SelectableHtml> {
         tagsList: widget.tagsList.isEmpty ? SelectableHtml.tags : widget.tagsList,
         selectionControls: widget.selectionControls,
         scrollPhysics: widget.scrollPhysics,
+        shouldSkipStyle: widget.shouldSkipStyle,
       ),
     );
   }
