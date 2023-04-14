@@ -121,7 +121,7 @@ class HtmlParser extends StatefulWidget {
           child: CssBoxWidget(
             style: tree.style,
             shrinkWrap: newContext.parser.shrinkWrap,
-            overriddenTextScaleFactor: textScaleFactor,
+            textScaleFactor: textScaleFactor,
             childIsReplaced: true, //TODO is this true?
             child: customRenders[entry]!.widget!.call(newContext, buildChildren),
           ),
@@ -837,6 +837,7 @@ class _HtmlParserState extends State<HtmlParser> {
       children.add(
         CssBoxWidget.withInlineSpanChildren(
           key: _htmlGlobalKey,
+          textScaleFactor: widget.textScaleFactor,
           style: _cleanedTree!.style,
           context: context,
           children: [_parsedTree!],
@@ -856,6 +857,7 @@ class _HtmlParserState extends State<HtmlParser> {
             child: CssBoxWidget.withInlineSpanChildren(
               key: _htmlGlobalKey,
               style: _cleanedTree!.style,
+              textScaleFactor: widget.textScaleFactor,
               context: context,
               children: [_parsedTree!],
               selectable: widget.selectable,
@@ -888,11 +890,10 @@ class _HtmlParserState extends State<HtmlParser> {
   }
 
   void _afterLayout(Duration timeStamp) {
-    final RenderBox renderBox = _htmlGlobalKey.currentContext?.findRenderObject() as RenderBox;
-    final size = renderBox.size;
+    final renderObject = _htmlGlobalKey.currentContext?.findRenderObject();
+    if (renderObject == null) return;
 
-    // print("html size: $size");
-
+    final size = renderObject.semanticBounds.size;
     widget.onContentRendered?.call(size);
 
     setState(() {

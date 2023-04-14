@@ -9,7 +9,7 @@ class CssBoxWidget extends StatelessWidget {
     super.key,
     required this.child,
     required this.style,
-    this.overriddenTextScaleFactor,
+    this.textScaleFactor,
     this.textDirection,
     this.childIsReplaced = false,
     this.shrinkWrap = false,
@@ -24,7 +24,7 @@ class CssBoxWidget extends StatelessWidget {
     this.textDirection,
     this.childIsReplaced = false,
     this.shrinkWrap = false,
-    this.overriddenTextScaleFactor,
+    this.textScaleFactor,
     bool selectable = false,
     TextSelectionControls? selectionControls,
     ScrollPhysics? scrollPhysics,
@@ -33,17 +33,18 @@ class CssBoxWidget extends StatelessWidget {
                 context,
                 children,
                 style,
+                textScaleFactor,
                 selectionControls,
                 scrollPhysics,
               )
-            : _generateWidgetChild(context, children, style);
+            : _generateWidgetChild(context, children, style, textScaleFactor);
 
   /// The child to be rendered within the CSS Box.
   final Widget child;
 
-  /// The [overriddenTextScaleFactor] variable stores a value representing the text scale factor. This overrides the system's default text scale factor and is used to scale the text size
+  /// The [textScaleFactor] variable stores a value representing the text scale factor. This overrides the system's default text scale factor and is used to scale the text size
   /// If this variable is not set, the application will use the default text scale factor provided by [MediaQuery.textScaleFactorOf].
-  final double? overriddenTextScaleFactor;
+  final double? textScaleFactor;
 
   /// The style to use to compute this box's margins/padding/box decoration/width/height/etc.
   ///
@@ -65,7 +66,7 @@ class CssBoxWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final markerBox = style.listStylePosition == ListStylePosition.outside ? _generateMarkerBoxSpan(context, style) : null;
+    final markerBox = style.listStylePosition == ListStylePosition.outside ? _generateMarkerBoxSpan(context, style, textScaleFactor) : null;
 
     return _CSSBoxRenderer(
       width: style.width ?? Width.auto(),
@@ -88,19 +89,19 @@ class CssBoxWidget extends StatelessWidget {
           padding: style.padding ?? EdgeInsets.zero,
           child: child,
         ),
-        if (markerBox != null) Text.rich(markerBox),
+        if (markerBox != null) Text.rich(markerBox, textScaleFactor: textScaleFactor),
       ],
     );
   }
 
   double _calculateEmValue(Style style, BuildContext buildContext) {
-    final scaleFactor = overriddenTextScaleFactor ?? MediaQuery.textScaleFactorOf(buildContext);
+    final scaleFactor = MediaQuery.textScaleFactorOf(buildContext);
     return (style.fontSize?.emValue ?? 16) * scaleFactor * MediaQuery.of(buildContext).devicePixelRatio;
   }
 
   /// Takes a list of InlineSpan children and generates a Text.rich Widget
   /// containing those children.
-  static Widget _generateWidgetChild(BuildContext context, List<InlineSpan> children, Style style) {
+  static Widget _generateWidgetChild(BuildContext context, List<InlineSpan> children, Style style, double? textScaleFactor) {
     if (children.isEmpty) {
       return Container();
     }
@@ -108,7 +109,7 @@ class CssBoxWidget extends StatelessWidget {
     // Generate an inline marker box if the list-style-position is set to
     // inside. Otherwise the marker box will be added elsewhere.
     if (style.listStylePosition == ListStylePosition.inside) {
-      final inlineMarkerBox = _generateMarkerBoxSpan(context, style);
+      final inlineMarkerBox = _generateMarkerBoxSpan(context, style, textScaleFactor);
       if (inlineMarkerBox != null) {
         children.insert(0, inlineMarkerBox);
       }
@@ -119,6 +120,7 @@ class CssBoxWidget extends StatelessWidget {
         style: style.generateTextStyle(context),
         children: children,
       ),
+      textScaleFactor: textScaleFactor ?? 1.0,
       textAlign: style.textAlign ?? TextAlign.start,
       textDirection: style.direction,
       maxLines: style.maxLines,
@@ -130,6 +132,7 @@ class CssBoxWidget extends StatelessWidget {
     BuildContext context,
     List<InlineSpan> children,
     Style style,
+    double? textScaleFactor,
     TextSelectionControls? selectionControls,
     ScrollPhysics? scrollPhysics,
   ) {
@@ -142,6 +145,7 @@ class CssBoxWidget extends StatelessWidget {
         style: style.generateTextStyle(context),
         children: children,
       ),
+      textScaleFactor: textScaleFactor,
       style: style.generateTextStyle(context),
       textAlign: style.textAlign,
       textDirection: style.direction,
@@ -151,7 +155,7 @@ class CssBoxWidget extends StatelessWidget {
     );
   }
 
-  static InlineSpan? _generateMarkerBoxSpan(BuildContext context, Style style) {
+  static InlineSpan? _generateMarkerBoxSpan(BuildContext context, Style style, double? textScaleFactor) {
     if (style.display == Display.listItem) {
       // First handle listStyleImage
       if (style.listStyleImage != null) {
@@ -162,6 +166,7 @@ class CssBoxWidget extends StatelessWidget {
             errorBuilder: (_, __, ___) {
               if (style.marker?.content.replacementContent?.isNotEmpty ?? false) {
                 return Text.rich(
+                  textScaleFactor: textScaleFactor,
                   TextSpan(
                     text: style.marker!.content.replacementContent!,
                     style: style.marker!.style?.generateTextStyle(context),
