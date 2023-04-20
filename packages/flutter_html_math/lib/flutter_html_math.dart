@@ -8,10 +8,15 @@ import 'package:flutter_math_fork/flutter_math.dart';
 export 'package:flutter_math_fork/flutter_math.dart';
 
 /// The CustomRender function for the <math> tag.
-CustomRender mathRender({OnMathError? onMathError}) => CustomRender.widget(widget: (context, buildChildren) {
-      String texStr = context.tree.element == null ? '' : _parseMathRecursive(context.tree.element!, r'');
+CustomRender mathRender({OnMathError? onMathError}) =>
+    CustomRender.widget(widget: (context, buildChildren) {
+      String texStr = context.tree.element == null
+          ? ''
+          : _parseMathRecursive(context.tree.element!, r'');
       return SizedBox(
-          width: context.parser.shrinkWrap ? null : MediaQuery.of(context.buildContext).size.width,
+          width: context.parser.shrinkWrap
+              ? null
+              : MediaQuery.of(context.buildContext).size.width,
           child: Math.tex(
             texStr,
             mathStyle: MathStyle.display,
@@ -34,18 +39,26 @@ CustomRenderMatcher mathMatcher() => (context) {
 String _parseMathRecursive(dom.Node node, String parsed) {
   if (node is dom.Element) {
     List<dom.Element> nodeList = node.nodes.whereType<dom.Element>().toList();
-    if (node.localName == "math" || node.localName == "mrow" || node.localName == "mtr") {
+    if (node.localName == "math" ||
+        node.localName == "mrow" ||
+        node.localName == "mtr") {
       for (var element in nodeList) {
         parsed = _parseMathRecursive(element, parsed);
       }
     }
     // note: munder, mover, and munderover do not support placing braces and other
     // markings above/below elements, instead they are treated as super/subscripts for now.
-    if ((node.localName == "msup" || node.localName == "msub" || node.localName == "munder" || node.localName == "mover") && nodeList.length == 2) {
+    if ((node.localName == "msup" ||
+            node.localName == "msub" ||
+            node.localName == "munder" ||
+            node.localName == "mover") &&
+        nodeList.length == 2) {
       parsed = _parseMathRecursive(nodeList[0], parsed);
-      parsed = "${_parseMathRecursive(nodeList[1], "$parsed${node.localName == "msup" || node.localName == "mover" ? "^" : "_"}{")}}";
+      parsed =
+          "${_parseMathRecursive(nodeList[1], "$parsed${node.localName == "msup" || node.localName == "mover" ? "^" : "_"}{")}}";
     }
-    if ((node.localName == "msubsup" || node.localName == "munderover") && nodeList.length == 3) {
+    if ((node.localName == "msubsup" || node.localName == "munderover") &&
+        nodeList.length == 3) {
       parsed = _parseMathRecursive(nodeList[0], parsed);
       parsed = "${_parseMathRecursive(nodeList[1], "${parsed}_{")}}";
       parsed = "${_parseMathRecursive(nodeList[2], "$parsed^{")}}";
@@ -70,17 +83,26 @@ String _parseMathRecursive(dom.Node node, String parsed) {
       parsed = "${_parseMathRecursive(nodeList[1], parsed + r"\sqrt[")}]";
       parsed = "${_parseMathRecursive(nodeList[0], "$parsed{")}}";
     }
-    if (node.localName == "mi" || node.localName == "mn" || node.localName == "mo") {
+    if (node.localName == "mi" ||
+        node.localName == "mn" ||
+        node.localName == "mo") {
       if (_mathML2Tex.keys.contains(node.text.trim())) {
-        parsed = parsed + _mathML2Tex[_mathML2Tex.keys.firstWhere((e) => e == node.text.trim())]!;
+        parsed = parsed +
+            _mathML2Tex[
+                _mathML2Tex.keys.firstWhere((e) => e == node.text.trim())]!;
       } else if (node.text.startsWith("&") && node.text.endsWith(";")) {
-        parsed = parsed + node.text.trim().replaceFirst("&", r"\").substring(0, node.text.trim().length - 1);
+        parsed = parsed +
+            node.text
+                .trim()
+                .replaceFirst("&", r"\")
+                .substring(0, node.text.trim().length - 1);
       } else {
         parsed = parsed + node.text.trim();
       }
     }
     if (node.localName == 'mtable') {
-      String inner = nodeList.map((e) => _parseMathRecursive(e, '')).join(' \\\\');
+      String inner =
+          nodeList.map((e) => _parseMathRecursive(e, '')).join(' \\\\');
       parsed = '$parsed\\begin{matrix}$inner\\end{matrix}';
     }
     if (node.localName == "mtd") {

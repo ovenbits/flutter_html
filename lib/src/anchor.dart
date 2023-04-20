@@ -28,7 +28,12 @@ class AnchorKey extends GlobalKey {
   }
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is AnchorKey && runtimeType == other.runtimeType && parentKey == other.parentKey && id == other.id;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AnchorKey &&
+          runtimeType == other.runtimeType &&
+          parentKey == other.parentKey &&
+          id == other.id;
 
   @override
   int get hashCode => parentKey.hashCode ^ id.hashCode;

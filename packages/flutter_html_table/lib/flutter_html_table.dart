@@ -7,7 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 
 /// The CustomRender function that will render the <table> HTML tag
-CustomRender tableRender() => CustomRender.widget(widget: (context, buildChildren) {
+CustomRender tableRender() =>
+    CustomRender.widget(widget: (context, buildChildren) {
       return CssBoxWidget(
         key: context.key,
         style: context.style,
@@ -39,11 +40,16 @@ Widget _layoutCells(RenderContext context, BoxConstraints constraints) {
                   // In a horizontally unbounded container; always wrap content instead of applying flex
                   return const IntrinsicContentTrackSize();
                 }
-                final percentageSize = double.tryParse(colWidth.substring(0, colWidth.length - 1));
-                return percentageSize != null && !percentageSize.isNaN ? FlexibleTrackSize(percentageSize * 0.01) : const IntrinsicContentTrackSize();
+                final percentageSize =
+                    double.tryParse(colWidth.substring(0, colWidth.length - 1));
+                return percentageSize != null && !percentageSize.isNaN
+                    ? FlexibleTrackSize(percentageSize * 0.01)
+                    : const IntrinsicContentTrackSize();
               } else if (colWidth != null) {
                 final fixedPxSize = double.tryParse(colWidth);
-                return fixedPxSize != null ? FixedTrackSize(fixedPxSize) : const IntrinsicContentTrackSize();
+                return fixedPxSize != null
+                    ? FixedTrackSize(fixedPxSize)
+                    : const IntrinsicContentTrackSize();
               } else {
                 return const IntrinsicContentTrackSize();
               }
@@ -59,17 +65,23 @@ Widget _layoutCells(RenderContext context, BoxConstraints constraints) {
   }
 
   // All table rows have a height intrinsic to their (spanned) contents
-  final rowSizes = List.generate(rows.length, (_) => const IntrinsicContentTrackSize());
+  final rowSizes =
+      List.generate(rows.length, (_) => const IntrinsicContentTrackSize());
 
   // Calculate column bounds
   int columnMax = 0;
   List<int> rowSpanOffsets = [];
   for (final row in rows) {
-    final cols = row.children.whereType<TableCellElement>().fold(0, (int value, child) => value + child.colspan) + rowSpanOffsets.fold<int>(0, (int offset, child) => child);
+    final cols = row.children
+            .whereType<TableCellElement>()
+            .fold(0, (int value, child) => value + child.colspan) +
+        rowSpanOffsets.fold<int>(0, (int offset, child) => child);
     columnMax = max(cols, columnMax);
     rowSpanOffsets = [
       ...rowSpanOffsets.map((value) => value - 1).where((value) => value > 0),
-      ...row.children.whereType<TableCellElement>().map((cell) => cell.rowspan - 1),
+      ...row.children
+          .whereType<TableCellElement>()
+          .map((cell) => cell.rowspan - 1),
     ];
   }
 
@@ -87,7 +99,8 @@ Widget _layoutCells(RenderContext context, BoxConstraints constraints) {
       if (child is TableCellElement) {
         while (columnRowOffset[columni] > 0) {
           columnRowOffset[columni] = columnRowOffset[columni] - 1;
-          columni += columnColspanOffset[columni].clamp(1, columnMax - columni - 1);
+          columni +=
+              columnColspanOffset[columni].clamp(1, columnMax - columni - 1);
         }
         cells.add(GridPlacement(
           columnStart: columni,
@@ -95,10 +108,13 @@ Widget _layoutCells(RenderContext context, BoxConstraints constraints) {
           rowStart: rowi,
           rowSpan: min(child.rowspan, rows.length - rowi),
           child: CssBoxWidget(
-            style: child.style.merge(row.style), //TODO padding/decoration(color/border)
+            style: child.style
+                .merge(row.style), //TODO padding/decoration(color/border)
             child: SizedBox.expand(
               child: Container(
-                alignment: child.style.alignment ?? context.style.alignment ?? Alignment.centerLeft,
+                alignment: child.style.alignment ??
+                    context.style.alignment ??
+                    Alignment.centerLeft,
                 child: CssBoxWidget.withInlineSpanChildren(
                   context: context.buildContext,
                   children: [context.parser.parseTree(context, child)],
@@ -122,7 +138,8 @@ Widget _layoutCells(RenderContext context, BoxConstraints constraints) {
 
   // Create column tracks (insofar there were no colgroups that already defined them)
   List<TrackSize> finalColumnSizes = columnSizes.take(columnMax).toList();
-  finalColumnSizes += List.generate(max(0, columnMax - finalColumnSizes.length), (_) => const IntrinsicContentTrackSize());
+  finalColumnSizes += List.generate(max(0, columnMax - finalColumnSizes.length),
+      (_) => const IntrinsicContentTrackSize());
 
   if (finalColumnSizes.isEmpty || rowSizes.isEmpty) {
     // No actual cells to show

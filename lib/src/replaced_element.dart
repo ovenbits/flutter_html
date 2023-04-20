@@ -27,7 +27,9 @@ abstract class ReplacedElement extends StyledElement {
   }) : super(children: children ?? []);
 
   static List<String?> parseMediaSources(List<dom.Element> elements) {
-    return elements.where((element) => element.localName == 'source').map((element) {
+    return elements
+        .where((element) => element.localName == 'source')
+        .map((element) {
       return element.attributes['src'];
     }).toList();
   }
@@ -45,7 +47,11 @@ class TextContentElement extends ReplacedElement {
     required this.text,
     this.node,
     dom.Element? element,
-  }) : super(name: "[text]", style: style, node: element, elementId: "[[No ID]]");
+  }) : super(
+            name: "[text]",
+            style: style,
+            node: element,
+            elementId: "[[No ID]]");
 
   @override
   String toString() {
@@ -57,7 +63,8 @@ class TextContentElement extends ReplacedElement {
 }
 
 class EmptyContentElement extends ReplacedElement {
-  EmptyContentElement({String name = "empty"}) : super(name: name, style: Style(), elementId: "[[No ID]]");
+  EmptyContentElement({String name = "empty"})
+      : super(name: name, style: Style(), elementId: "[[No ID]]");
 
   @override
   Widget? toWidget(context) => null;
@@ -71,17 +78,28 @@ class RubyElement extends ReplacedElement {
     required this.element,
     required List<StyledElement> children,
     String name = "ruby",
-  }) : super(name: name, alignment: PlaceholderAlignment.middle, style: Style(), elementId: element.id, children: children);
+  }) : super(
+            name: name,
+            alignment: PlaceholderAlignment.middle,
+            style: Style(),
+            elementId: element.id,
+            children: children);
 
   @override
   Widget toWidget(RenderContext context) {
     StyledElement? node;
     List<Widget> widgets = <Widget>[];
-    final rubySize = context.parser.style['rt']?.fontSize?.value ?? max(9.0, context.style.fontSize!.value / 2);
+    final rubySize = context.parser.style['rt']?.fontSize?.value ??
+        max(9.0, context.style.fontSize!.value / 2);
     final rubyYPos = rubySize + rubySize / 2;
     List<StyledElement> children = [];
     context.tree.children.forEachIndexed((index, element) {
-      if (!((element is TextContentElement) && (element.text ?? "").trim().isEmpty && index > 0 && index + 1 < context.tree.children.length && context.tree.children[index - 1] is! TextContentElement && context.tree.children[index + 1] is! TextContentElement)) {
+      if (!((element is TextContentElement) &&
+          (element.text ?? "").trim().isEmpty &&
+          index > 0 &&
+          index + 1 < context.tree.children.length &&
+          context.tree.children[index - 1] is! TextContentElement &&
+          context.tree.children[index + 1] is! TextContentElement)) {
         children.add(element);
       }
     });
@@ -99,7 +117,9 @@ class RubyElement extends ReplacedElement {
                     style: c.style,
                     child: Text(
                       c.element!.innerHtml,
-                      style: c.style.generateTextStyle(context.buildContext).copyWith(fontSize: rubySize),
+                      style: c.style
+                          .generateTextStyle(context.buildContext)
+                          .copyWith(fontSize: rubySize),
                     ),
                   ),
                 ),
@@ -110,7 +130,8 @@ class RubyElement extends ReplacedElement {
               child: node is TextContentElement
                   ? Text(
                       node.text?.trim() ?? "",
-                      style: context.style.generateTextStyle(context.buildContext),
+                      style:
+                          context.style.generateTextStyle(context.buildContext),
                     )
                   : RichText(text: context.parser.parseTree(context, node)),
             ),
@@ -157,6 +178,7 @@ ReplacedElement parseReplacedElement(
         children: children,
       );
     default:
-      return EmptyContentElement(name: element.localName == null ? "[[No Name]]" : element.localName!);
+      return EmptyContentElement(
+          name: element.localName == null ? "[[No Name]]" : element.localName!);
   }
 }

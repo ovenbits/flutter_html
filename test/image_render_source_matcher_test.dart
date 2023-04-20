@@ -87,25 +87,29 @@ void main() {
     testImgSrcMatcher(
       "matches schema, domain and extension",
       matcher,
-      imgSrc: 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_92x30dp.png',
+      imgSrc:
+          'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_92x30dp.png',
       shouldMatch: true,
     );
     testImgSrcMatcher(
       "doesn't match if schema is different",
       matcher,
-      imgSrc: 'http://www.google.com/images/branding/googlelogo/2x/googlelogo_color_92x30dp.png',
+      imgSrc:
+          'http://www.google.com/images/branding/googlelogo/2x/googlelogo_color_92x30dp.png',
       shouldMatch: false,
     );
     testImgSrcMatcher(
       "doesn't match if domain is different",
       matcher,
-      imgSrc: 'https://google.com/images/branding/googlelogo/2x/googlelogo_color_92x30dp.png',
+      imgSrc:
+          'https://google.com/images/branding/googlelogo/2x/googlelogo_color_92x30dp.png',
       shouldMatch: false,
     );
     testImgSrcMatcher(
       "doesn't match if file extension is different",
       matcher,
-      imgSrc: 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_92x30dppng',
+      imgSrc:
+          'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_92x30dppng',
       shouldMatch: false,
     );
     testImgSrcMatcher(
@@ -126,7 +130,8 @@ void main() {
     testImgSrcMatcher(
       "matches a full png base64 data uri",
       matcher,
-      imgSrc: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==',
+      imgSrc:
+          'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==',
       shouldMatch: true,
     );
     testImgSrcMatcher(
@@ -145,7 +150,8 @@ void main() {
     testImgSrcMatcher(
       "doesn't match non-base64 image data uri",
       matcher,
-      imgSrc: 'data:image/png;hex,89504e470d0a1a0a0000000d49484452000000050000000508060000008d6f26e50000001c4944415408d763f8ffff3fc37f062005c3201284d031f18258cd04000ef535cbd18e0e1f0000000049454e44ae426082',
+      imgSrc:
+          'data:image/png;hex,89504e470d0a1a0a0000000d49484452000000050000000508060000008d6f26e50000001c4944415408d763f8ffff3fc37f062005c3201284d031f18258cd04000ef535cbd18e0e1f0000000049454e44ae426082',
       shouldMatch: false,
     );
     testImgSrcMatcher(
@@ -203,6 +209,7 @@ void testImgSrcMatcher(
         ),
       ),
     );
-    await expectLater(find.text("Success"), shouldMatch ? findsOneWidget : findsNothing);
+    await expectLater(
+        find.text("Success"), shouldMatch ? findsOneWidget : findsNothing);
   });
 }

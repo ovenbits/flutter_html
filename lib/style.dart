@@ -272,7 +272,8 @@ class Style {
     this.textOverflow,
     this.textTransform = TextTransform.none,
   }) {
-    if (alignment == null && (display == Display.block || display == Display.listItem)) {
+    if (alignment == null &&
+        (display == Display.block || display == Display.listItem)) {
       alignment = Alignment.centerLeft;
     }
   }
@@ -287,7 +288,8 @@ class Style {
         'body': Style.fromTextStyle(theme.textTheme.bodyMedium!),
       };
 
-  static Map<String, Style> fromCss(String css, OnCssParseError? onCssParseError) {
+  static Map<String, Style> fromCss(
+      String css, OnCssParseError? onCssParseError) {
     final declarations = parseExternalCss(css, onCssParseError);
     Map<String, Style> styleMap = {};
     declarations.forEach((key, value) {
@@ -299,7 +301,9 @@ class Style {
   TextStyle generateTextStyle(BuildContext context) {
     return TextStyle(
       backgroundColor: backgroundColor,
-      color: Theme.of(context).brightness == Brightness.light ? (color == Colors.white ? Colors.black : color) : Colors.white, // TODO make this smarter,
+      color: Theme.of(context).brightness == Brightness.light
+          ? (color == Colors.white ? Colors.black : color)
+          : Colors.white, // TODO make this smarter,
       decoration: textDecoration,
       decorationColor: textDecorationColor,
       decorationStyle: textDecorationStyle,
@@ -377,12 +381,16 @@ class Style {
 
     LineHeight? finalLineHeight = child.lineHeight != null
         ? child.lineHeight?.units == "length"
-            ? LineHeight(child.lineHeight!.size! / (finalFontSize == null ? 14 : finalFontSize.value) * 1.2)
+            ? LineHeight(child.lineHeight!.size! /
+                (finalFontSize == null ? 14 : finalFontSize.value) *
+                1.2)
             : child.lineHeight
         : lineHeight;
 
     return child.copyWith(
-      backgroundColor: child.backgroundColor != Colors.transparent ? child.backgroundColor : backgroundColor,
+      backgroundColor: child.backgroundColor != Colors.transparent
+          ? child.backgroundColor
+          : backgroundColor,
       color: child.color ?? color,
       direction: child.direction ?? direction,
       display: display == Display.none ? display : child.display,
@@ -479,7 +487,8 @@ class Style {
       textDecoration: textDecoration ?? this.textDecoration,
       textDecorationColor: textDecorationColor ?? this.textDecorationColor,
       textDecorationStyle: textDecorationStyle ?? this.textDecorationStyle,
-      textDecorationThickness: textDecorationThickness ?? this.textDecorationThickness,
+      textDecorationThickness:
+          textDecorationThickness ?? this.textDecorationThickness,
       textShadow: textShadow ?? this.textShadow,
       verticalAlign: verticalAlign ?? this.verticalAlign,
       whiteSpace: whiteSpace ?? this.whiteSpace,
@@ -506,7 +515,8 @@ class Style {
     fontFamily = textStyle.fontFamily;
     fontFamilyFallback = textStyle.fontFamilyFallback;
     fontFeatureSettings = textStyle.fontFeatures;
-    fontSize = textStyle.fontSize != null ? FontSize(textStyle.fontSize!) : null;
+    fontSize =
+        textStyle.fontSize != null ? FontSize(textStyle.fontSize!) : null;
     fontStyle = textStyle.fontStyle;
     fontWeight = textStyle.fontWeight;
     letterSpacing = textStyle.letterSpacing;

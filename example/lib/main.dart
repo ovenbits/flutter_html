@@ -265,7 +265,8 @@ class MyHomePageState extends State<MyHomePage> {
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.arrow_downward),
         onPressed: () {
-          final anchorContext = AnchorKey.forId(staticAnchorKey, "bottom")?.currentContext;
+          final anchorContext =
+              AnchorKey.forId(staticAnchorKey, "bottom")?.currentContext;
           if (anchorContext != null) {
             Scrollable.ensureVisible(anchorContext);
           }
@@ -298,26 +299,36 @@ class MyHomePageState extends State<MyHomePage> {
                 widget: (context, buildChildren) => Math.tex(
                       context.tree.element?.innerHtml ?? '',
                       mathStyle: MathStyle.display,
-                      textStyle: context.style.generateTextStyle(context.buildContext),
+                      textStyle:
+                          context.style.generateTextStyle(context.buildContext),
                       onErrorFallback: (FlutterMathException e) {
                         return Text(e.message);
                       },
                     )),
-            tagMatcher("bird"): CustomRender.inlineSpan(inlineSpan: (context, buildChildren) => const TextSpan(text: "🐦")),
+            tagMatcher("bird"): CustomRender.inlineSpan(
+                inlineSpan: (context, buildChildren) =>
+                    const TextSpan(text: "🐦")),
             tagMatcher("flutter"): CustomRender.widget(
                 widget: (context, buildChildren) => FlutterLogo(
-                      style: (context.tree.element!.attributes['horizontal'] != null) ? FlutterLogoStyle.horizontal : FlutterLogoStyle.markOnly,
+                      style: (context.tree.element!.attributes['horizontal'] !=
+                              null)
+                          ? FlutterLogoStyle.horizontal
+                          : FlutterLogoStyle.markOnly,
                       textColor: context.style.color!,
                       size: context.style.fontSize!.value * 5,
                     )),
             tagMatcher("table"): CustomRender.widget(
                 widget: (context, buildChildren) => SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
-                      child: tableRender.call().widget!.call(context, buildChildren),
+                      child: tableRender
+                          .call()
+                          .widget!
+                          .call(context, buildChildren),
                     )),
             audioMatcher(): audioRender(),
             iframeMatcher(): iframeRender(),
-            mathMatcher(): mathRender(onMathError: (error, exception, exceptionWithType) {
+            mathMatcher():
+                mathRender(onMathError: (error, exception, exceptionWithType) {
               debugPrint(exception);
               return Text(exception);
             }),
@@ -325,7 +336,8 @@ class MyHomePageState extends State<MyHomePage> {
             svgDataUriMatcher(): svgDataImageRender(),
             svgAssetUriMatcher(): svgAssetImageRender(),
             svgNetworkSourceMatcher(): svgNetworkImageRender(),
-            networkSourceMatcher(domains: ["flutter.dev"]): CustomRender.widget(widget: (context, buildChildren) {
+            networkSourceMatcher(domains: ["flutter.dev"]):
+                CustomRender.widget(widget: (context, buildChildren) {
               return const FlutterLogo(size: 36);
             }),
             networkSourceMatcher(domains: ["mydomain.com"]): networkImageRender(
@@ -334,9 +346,14 @@ class MyHomePageState extends State<MyHomePage> {
               loadingWidget: () => const Text("Loading..."),
             ),
             // On relative paths starting with /wiki, prefix with a base url
-            (context) => context.tree.element?.attributes["src"] != null && context.tree.element!.attributes["src"]!.startsWith("/wiki"): networkImageRender(mapUrl: (url) => "https://upload.wikimedia.org${url!}"),
+            (context) =>
+                context.tree.element?.attributes["src"] != null &&
+                context.tree.element!.attributes["src"]!
+                    .startsWith("/wiki"): networkImageRender(
+                mapUrl: (url) => "https://upload.wikimedia.org${url!}"),
             // Custom placeholder image for broken links
-            networkSourceMatcher(): networkImageRender(altWidget: (_) => const FlutterLogo()),
+            networkSourceMatcher():
+                networkImageRender(altWidget: (_) => const FlutterLogo()),
             videoMatcher(): videoRender(),
           },
           onLinkTap: (url, _, __, ___) {
@@ -362,8 +379,11 @@ class MyHomePageState extends State<MyHomePage> {
   }
 }
 
-CustomRenderMatcher texMatcher() => (context) => context.tree.element?.localName == 'tex';
+CustomRenderMatcher texMatcher() =>
+    (context) => context.tree.element?.localName == 'tex';
 
-CustomRenderMatcher birdMatcher() => (context) => context.tree.element?.localName == 'bird';
+CustomRenderMatcher birdMatcher() =>
+    (context) => context.tree.element?.localName == 'bird';
 
-CustomRenderMatcher flutterMatcher() => (context) => context.tree.element?.localName == 'flutter';
+CustomRenderMatcher flutterMatcher() =>
+    (context) => context.tree.element?.localName == 'flutter';

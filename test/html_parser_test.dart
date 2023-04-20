@@ -3,7 +3,8 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets("Check that default parser does not fail on empty data", (tester) async {
+  testWidgets("Check that default parser does not fail on empty data",
+      (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
@@ -14,7 +15,8 @@ void main() {
       ),
     );
   });
-  testWidgets('Test new parser (hacky workaround to get BuildContext)', (WidgetTester tester) async {
+  testWidgets('Test new parser (hacky workaround to get BuildContext)',
+      (WidgetTester tester) async {
     await tester.pumpWidget(
       Builder(
         builder: (BuildContext context) {
@@ -38,7 +40,8 @@ void testNewParser(BuildContext context) {
     context,
     HtmlParser(
       key: null,
-      htmlData: HtmlParser.parseHTML("Hello! <b>Hello, World!</b><i>Hello, New World!</i>"),
+      htmlData: HtmlParser.parseHTML(
+          "Hello! <b>Hello, World!</b><i>Hello, New World!</i>"),
       onLinkTap: null,
       onAnchorTap: null,
       onImageTap: null,
@@ -55,13 +58,15 @@ void testNewParser(BuildContext context) {
   );
 
   HtmlParser.lexDomTree(
-    HtmlParser.parseHTML("Hello, World! <a href='https://example.com'>This is a link</a>"),
+    HtmlParser.parseHTML(
+        "Hello, World! <a href='https://example.com'>This is a link</a>"),
     [],
     Html.tags,
     context,
     HtmlParser(
       key: null,
-      htmlData: HtmlParser.parseHTML("Hello, World! <a href='https://example.com'>This is a link</a>"),
+      htmlData: HtmlParser.parseHTML(
+          "Hello, World! <a href='https://example.com'>This is a link</a>"),
       onLinkTap: null,
       onAnchorTap: null,
       onImageTap: null,
@@ -84,7 +89,8 @@ void testNewParser(BuildContext context) {
     context,
     HtmlParser(
       key: null,
-      htmlData: HtmlParser.parseHTML("<img alt='' src='https://image.example.com' />"),
+      htmlData: HtmlParser.parseHTML(
+          "<img alt='' src='https://image.example.com' />"),
       onLinkTap: null,
       onAnchorTap: null,
       onImageTap: null,
@@ -101,13 +107,15 @@ void testNewParser(BuildContext context) {
   );
 
   HtmlParser.lexDomTree(
-    HtmlParser.parseHTML("<div><div><div><div><a href='https://example.com'>Link</a><div>Hello, World! <b>Bold and <i>Italic</i></b></div></div></div></div></div>"),
+    HtmlParser.parseHTML(
+        "<div><div><div><div><a href='https://example.com'>Link</a><div>Hello, World! <b>Bold and <i>Italic</i></b></div></div></div></div></div>"),
     [],
     Html.tags,
     context,
     HtmlParser(
       key: null,
-      htmlData: HtmlParser.parseHTML("<div><div><div><div><a href='https://example.com'>Link</a><div>Hello, World! <b>Bold and <i>Italic</i></b></div></div></div></div></div>"),
+      htmlData: HtmlParser.parseHTML(
+          "<div><div><div><div><a href='https://example.com'>Link</a><div>Hello, World! <b>Bold and <i>Italic</i></b></div></div></div></div></div>"),
       onLinkTap: null,
       onAnchorTap: null,
       onImageTap: null,

@@ -133,21 +133,27 @@ class DetailsContentElement extends LayoutElement {
 
   @override
   Widget toWidget(RenderContext context) {
-    List<InlineSpan>? childrenList = children.map((tree) => context.parser.parseTree(context, tree)).toList();
+    List<InlineSpan>? childrenList = children
+        .map((tree) => context.parser.parseTree(context, tree))
+        .toList();
     List<InlineSpan> toRemove = [];
     for (InlineSpan child in childrenList) {
-      if (child is TextSpan && child.text != null && child.text!.trim().isEmpty) {
+      if (child is TextSpan &&
+          child.text != null &&
+          child.text!.trim().isEmpty) {
         toRemove.add(child);
       }
     }
     for (InlineSpan child in toRemove) {
       childrenList.remove(child);
     }
-    InlineSpan? firstChild = childrenList.isNotEmpty == true ? childrenList.first : null;
+    InlineSpan? firstChild =
+        childrenList.isNotEmpty == true ? childrenList.first : null;
     return ExpansionTile(
         key: AnchorKey.of(context.parser.key, this),
         expandedAlignment: Alignment.centerLeft,
-        title: elementList.isNotEmpty == true && elementList.first.localName == "summary"
+        title: elementList.isNotEmpty == true &&
+                elementList.first.localName == "summary"
             ? CssBoxWidget.withInlineSpanChildren(
                 context: context.buildContext,
                 children: firstChild == null ? [] : [firstChild],
@@ -157,13 +163,20 @@ class DetailsContentElement extends LayoutElement {
         children: [
           CssBoxWidget.withInlineSpanChildren(
             context: context.buildContext,
-            children: getChildren(childrenList, context, elementList.isNotEmpty == true && elementList.first.localName == "summary" ? firstChild : null),
+            children: getChildren(
+                childrenList,
+                context,
+                elementList.isNotEmpty == true &&
+                        elementList.first.localName == "summary"
+                    ? firstChild
+                    : null),
             style: style,
           ),
         ]);
   }
 
-  List<InlineSpan> getChildren(List<InlineSpan> children, RenderContext context, InlineSpan? firstChild) {
+  List<InlineSpan> getChildren(List<InlineSpan> children, RenderContext context,
+      InlineSpan? firstChild) {
     if (firstChild != null) children.removeAt(0);
     return children;
   }

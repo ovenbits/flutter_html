@@ -28,7 +28,8 @@ class StyledElement {
     required dom.Element? node,
   }) : _node = node;
 
-  bool matchesSelector(String selector) => (_node != null && matches(_node!, selector)) || name == selector;
+  bool matchesSelector(String selector) =>
+      (_node != null && matches(_node!, selector)) || name == selector;
 
   dom.Element? get internalNode => _node;
 
@@ -42,9 +43,11 @@ class StyledElement {
 
   @override
   String toString() {
-    String selfData = "[$name] ${children.length} ${elementClasses.isNotEmpty == true ? 'C:${elementClasses.toString()}' : ''}${elementId.isNotEmpty == true ? 'ID: $elementId' : ''}";
+    String selfData =
+        "[$name] ${children.length} ${elementClasses.isNotEmpty == true ? 'C:${elementClasses.toString()}' : ''}${elementId.isNotEmpty == true ? 'ID: $elementId' : ''}";
     for (var child in children) {
-      selfData += ("\n${child.toString()}").replaceAll(RegExp("^", multiLine: true), "-");
+      selfData += ("\n${child.toString()}")
+          .replaceAll(RegExp("^", multiLine: true), "-");
     }
     return selfData;
   }
@@ -90,7 +93,10 @@ StyledElement parseStyledElement(
       );
       break;
     case "bdo":
-      TextDirection textDirection = ((element.attributes["dir"] ?? "ltr") == "rtl") ? TextDirection.rtl : TextDirection.ltr;
+      TextDirection textDirection =
+          ((element.attributes["dir"] ?? "ltr") == "rtl")
+              ? TextDirection.rtl
+              : TextDirection.ltr;
       styledElement.style = Style(
         direction: textDirection,
       );
@@ -188,10 +194,13 @@ StyledElement parseStyledElement(
         color: element.attributes['color'] != null
             ? element.attributes['color']!.startsWith("#")
                 ? ExpressionMapping.stringToColor(element.attributes['color']!)
-                : ExpressionMapping.namedColorToColor(element.attributes['color']!)
+                : ExpressionMapping.namedColorToColor(
+                    element.attributes['color']!)
             : null,
         fontFamily: element.attributes['face']?.split(",").first,
-        fontSize: element.attributes['size'] != null ? numberToFontSize(element.attributes['size']!) : null,
+        fontSize: element.attributes['size'] != null
+            ? numberToFontSize(element.attributes['size']!)
+            : null,
       );
       break;
     case "h1":
@@ -303,7 +312,9 @@ StyledElement parseStyledElement(
     case "ul":
       styledElement.style = Style(
         display: Display.block,
-        listStyleType: element.localName == "ol" ? ListStyleType.decimal : ListStyleType.disc,
+        listStyleType: element.localName == "ol"
+            ? ListStyleType.decimal
+            : ListStyleType.disc,
         padding: const EdgeInsets.only(left: 40),
       );
       break;

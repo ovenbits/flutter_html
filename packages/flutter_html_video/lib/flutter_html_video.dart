@@ -6,10 +6,14 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:video_player/video_player.dart';
 import 'package:html/dom.dart' as dom;
 
-typedef VideoControllerCallback = void Function(dom.Element?, ChewieController, VideoPlayerController);
+typedef VideoControllerCallback = void Function(
+    dom.Element?, ChewieController, VideoPlayerController);
 
 /// A CustomRender function for rendering the <video> HTML tag.
-CustomRender videoRender({VideoControllerCallback? onControllerCreated}) => CustomRender.widget(widget: (context, buildChildren) => VideoWidget(context: context, callback: onControllerCreated));
+CustomRender videoRender({VideoControllerCallback? onControllerCreated}) =>
+    CustomRender.widget(
+        widget: (context, buildChildren) =>
+            VideoWidget(context: context, callback: onControllerCreated));
 
 /// A CustomRenderMatcher for the <video> HTML tag
 CustomRenderMatcher videoMatcher() => (context) {
@@ -42,7 +46,8 @@ class _VideoWidgetState extends State<VideoWidget> {
     final attributes = widget.context.tree.element?.attributes ?? {};
     final sources = <String?>[
       if (attributes['src'] != null) attributes['src'],
-      ...ReplacedElement.parseMediaSources(widget.context.tree.element!.children),
+      ...ReplacedElement.parseMediaSources(
+          widget.context.tree.element!.children),
     ];
     final givenWidth = double.tryParse(attributes['width'] ?? "");
     final givenHeight = double.tryParse(attributes['height'] ?? "");
@@ -52,14 +57,19 @@ class _VideoWidgetState extends State<VideoWidget> {
       _videoController = VideoPlayerController.network(sources.first!);
       _chewieController = ChewieController(
         videoPlayerController: _videoController!,
-        placeholder: attributes['poster'] != null && attributes['poster']!.isNotEmpty ? Image.network(attributes['poster']!) : Container(color: Colors.black),
+        placeholder:
+            attributes['poster'] != null && attributes['poster']!.isNotEmpty
+                ? Image.network(attributes['poster']!)
+                : Container(color: Colors.black),
         autoPlay: attributes['autoplay'] != null,
         looping: attributes['loop'] != null,
         showControls: attributes['controls'] != null,
         autoInitialize: true,
-        aspectRatio: _width == null || _height == null ? null : _width! / _height!,
+        aspectRatio:
+            _width == null || _height == null ? null : _width! / _height!,
       );
-      widget.callback?.call(widget.context.tree.element, _chewieController!, _videoController!);
+      widget.callback?.call(
+          widget.context.tree.element, _chewieController!, _videoController!);
     }
     super.initState();
   }
