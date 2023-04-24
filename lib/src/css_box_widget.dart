@@ -97,13 +97,6 @@ class CssBoxWidget extends StatelessWidget {
     );
   }
 
-  double _calculateEmValue(Style style, BuildContext buildContext) {
-    final scaleFactor = MediaQuery.textScaleFactorOf(buildContext);
-    return (style.fontSize?.emValue ?? 16) *
-        scaleFactor *
-        MediaQuery.of(buildContext).devicePixelRatio;
-  }
-
   /// Takes a list of InlineSpan children and generates a Text.rich Widget
   /// containing those children.
   static Widget _generateWidgetChild(BuildContext context,
@@ -784,6 +777,12 @@ extension Normalize on Dimension {
         return;
     }
   }
+}
+
+double _calculateEmValue(Style style, BuildContext buildContext) {
+  return (style.fontSize?.emValue ?? 16) *
+      MediaQuery.textScaleFactorOf(buildContext) *
+      MediaQuery.of(buildContext).devicePixelRatio;
 }
 
 class CSSBoxParentData extends ContainerBoxParentData<RenderBox> {}

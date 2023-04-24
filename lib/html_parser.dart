@@ -912,7 +912,7 @@ class _HtmlParserState extends State<HtmlParser> {
   ParseResult? _parseResult;
 
   InlineSpan? _parsedTree;
-  StyledElement? _cleanedTree;
+  StyledElement? _processedTree;
   bool _disposed = false;
 
   @override
@@ -930,13 +930,6 @@ class _HtmlParserState extends State<HtmlParser> {
 
   @override
   Widget build(BuildContext context) {
-    //final themeData = Theme.of(context);
-    //if (themeData != _themeData) {
-    //  _themeData = themeData;
-    //  //_parseResult = null;
-    //  _parseTree(context);
-    //}
-
     if (_parseResult == null) {
       try {
         _parseTree(context);
@@ -968,7 +961,7 @@ class _HtmlParserState extends State<HtmlParser> {
         CssBoxWidget.withInlineSpanChildren(
           key: _htmlGlobalKey,
           textScaleFactor: widget.textScaleFactor,
-          style: _cleanedTree!.style,
+          style: _processedTree!.style,
           context: context,
           children: [_parsedTree!],
           selectable: widget.selectable,
@@ -986,7 +979,7 @@ class _HtmlParserState extends State<HtmlParser> {
             offstage: true,
             child: CssBoxWidget.withInlineSpanChildren(
               key: _htmlGlobalKey,
-              style: _cleanedTree!.style,
+              style: _processedTree!.style,
               textScaleFactor: widget.textScaleFactor,
               context: context,
               children: [_parsedTree!],
@@ -1068,7 +1061,7 @@ class _HtmlParserState extends State<HtmlParser> {
     InlineSpan? parsedTree;
 
     try {
-      if (_cleanedTree == null && mounted) {
+      if (_processedTree == null && mounted) {
         // Lexing Step
         StyledElement lexedTree = HtmlParser.lexDomTree(
           widget.htmlData,
@@ -1090,16 +1083,16 @@ class _HtmlParserState extends State<HtmlParser> {
         StyledElement processedTree = HtmlParser.processTree(
             styledTree, MediaQuery.of(context).devicePixelRatio);
 
-        _cleanedTree = processedTree;
+        _processedTree = processedTree;
 
         _parsedTree = widget.parseTree(
           RenderContext(
             buildContext: context,
             parser: widget,
-            tree: _cleanedTree!,
-            style: _cleanedTree!.style,
+            tree: processedTree,
+            style: processedTree.style,
           ),
-          _cleanedTree!,
+          processedTree,
         );
       }
 
@@ -1122,7 +1115,7 @@ class _HtmlParserState extends State<HtmlParser> {
 
     if (!_disposed) {
       setState(() {
-        _parseResult = ParseResult(parsedTree, _cleanedTree?.style);
+        _parseResult = ParseResult(parsedTree, _processedTree?.style);
       });
     }
   }
