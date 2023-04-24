@@ -961,9 +961,9 @@ class _HtmlParserState extends State<HtmlParser> {
         CssBoxWidget.withInlineSpanChildren(
           key: _htmlGlobalKey,
           textScaleFactor: widget.textScaleFactor,
-          style: _processedTree!.style,
+          style: _parseResult!.style,
           context: context,
-          children: [_parsedTree!],
+          children: [_parseResult!.inlineSpan],
           selectable: widget.selectable,
           scrollPhysics: widget.scrollPhysics,
           selectionControls: widget.selectionControls,
@@ -973,16 +973,16 @@ class _HtmlParserState extends State<HtmlParser> {
     }
 
     return Stack(
-      children: <Widget>[
+      children: [
         if (_isOffstage && _parseResult != null)
           Offstage(
             offstage: true,
             child: CssBoxWidget.withInlineSpanChildren(
               key: _htmlGlobalKey,
-              style: _processedTree!.style,
+              style: _parseResult!.style,
               textScaleFactor: widget.textScaleFactor,
               context: context,
-              children: [_parsedTree!],
+              children: [_parseResult!.inlineSpan],
               selectable: widget.selectable,
               scrollPhysics: widget.scrollPhysics,
               selectionControls: widget.selectionControls,
@@ -1058,8 +1058,6 @@ class _HtmlParserState extends State<HtmlParser> {
       print('_parseTree parsing');
     }
 
-    InlineSpan? parsedTree;
-
     try {
       if (_processedTree == null && mounted) {
         // Lexing Step
@@ -1113,9 +1111,9 @@ class _HtmlParserState extends State<HtmlParser> {
       }
     }
 
-    if (!_disposed) {
+    if (!_disposed && _parsedTree != null && _processedTree != null) {
       setState(() {
-        _parseResult = ParseResult(parsedTree, _processedTree?.style);
+        _parseResult = ParseResult(_parsedTree!, _processedTree!.style);
       });
     }
   }
@@ -1164,8 +1162,8 @@ extension IterateLetters on String {
 }
 
 class ParseResult {
-  final InlineSpan? inlineSpan;
-  final Style? style;
+  final InlineSpan inlineSpan;
+  final Style style;
 
   ParseResult(this.inlineSpan, this.style);
 }

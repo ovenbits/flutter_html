@@ -13,6 +13,7 @@ void main() {
           ),
         ),
       );
+      await tester.pumpAndSettle(const Duration(milliseconds: 100));
       expect(find.text('', findRichText: true), findsOneWidget);
     },
   );
@@ -27,6 +28,7 @@ void main() {
           ),
         ),
       );
+      await tester.pumpAndSettle(const Duration(milliseconds: 100));
       expect(find.text('', findRichText: true), findsOneWidget);
     },
   );
@@ -41,6 +43,7 @@ void main() {
           ),
         ),
       );
+      await tester.pumpAndSettle(const Duration(milliseconds: 100));
       expect(find.text('Text', findRichText: true), findsOneWidget);
     },
   );
@@ -53,6 +56,7 @@ void main() {
         ),
       ),
     );
+    await tester.pumpAndSettle(const Duration(milliseconds: 100));
     expect(find.text('Text', findRichText: true), findsOneWidget);
   });
 
@@ -67,6 +71,7 @@ void main() {
         ),
       ),
     );
+    await tester.pumpAndSettle(const Duration(milliseconds: 100));
     expect(find.text('Text', findRichText: true), findsNothing);
   });
 
@@ -81,6 +86,7 @@ void main() {
         ),
       ),
     );
+    await tester.pumpAndSettle(const Duration(milliseconds: 100));
     expect(find.text('Text', findRichText: true), findsOneWidget);
   });
 
@@ -92,6 +98,7 @@ void main() {
         ),
       ),
     );
+    await tester.pumpAndSettle(const Duration(milliseconds: 100));
     expect(find.text('Text', findRichText: true), findsNothing);
   });
 
@@ -104,6 +111,7 @@ void main() {
         ),
       ),
     );
+    await tester.pumpAndSettle(const Duration(milliseconds: 100));
     expect(find.text('Text', findRichText: true), findsOneWidget);
   });
 }

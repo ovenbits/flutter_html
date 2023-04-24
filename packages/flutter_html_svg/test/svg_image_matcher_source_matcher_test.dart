@@ -90,6 +90,7 @@ void testImgSrcMatcher(
         ),
       ),
     );
+    await tester.pumpAndSettle(const Duration(milliseconds: 100));
     await expectLater(
         find.text("Success"), shouldMatch ? findsOneWidget : findsNothing);
   });
