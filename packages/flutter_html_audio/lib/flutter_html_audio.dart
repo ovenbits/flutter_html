@@ -6,24 +6,33 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:video_player/video_player.dart';
 import 'package:html/dom.dart' as dom;
 
-typedef AudioControllerCallback = void Function(dom.Element?, ChewieAudioController, VideoPlayerController);
+typedef AudioControllerCallback = void Function(
+    dom.Element?, ChewieAudioController, VideoPlayerController);
 
-CustomRender audioRender({AudioControllerCallback? onControllerCreated})
-  => CustomRender.widget(widget: (context, buildChildren)
-    => AudioWidget(context: context, callback: onControllerCreated));
+/// The CustomRender function for the `<audio>` tag
+CustomRender audioRender({AudioControllerCallback? onControllerCreated}) =>
+    CustomRender.widget(
+      widget: (context, buildChildren) => AudioWidget(
+        context: context,
+        callback: onControllerCreated,
+      ),
+    );
 
+/// The CustomRenderMatcher that will match the `<audio>` tag
 CustomRenderMatcher audioMatcher() => (context) {
-  return context.tree.element?.localName == "audio";
-};
+      return context.tree.element?.localName == "audio";
+    };
 
+/// A widget used for rendering an audio player in the HTML tree
 class AudioWidget extends StatefulWidget {
   final RenderContext context;
   final AudioControllerCallback? callback;
 
-  AudioWidget({
+  const AudioWidget({
+    Key? key,
     required this.context,
     this.callback,
-  });
+  }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _AudioWidgetState();
@@ -39,7 +48,8 @@ class _AudioWidgetState extends State<AudioWidget> {
     sources = <String?>[
       if (widget.context.tree.element?.attributes['src'] != null)
         widget.context.tree.element!.attributes['src'],
-      ...ReplacedElement.parseMediaSources(widget.context.tree.element!.children),
+      ...ReplacedElement.parseMediaSources(
+          widget.context.tree.element!.children),
     ];
     if (sources.isNotEmpty && sources.first != null) {
       audioController = VideoPlayerController.network(
@@ -49,10 +59,12 @@ class _AudioWidgetState extends State<AudioWidget> {
         videoPlayerController: audioController!,
         autoPlay: widget.context.tree.element?.attributes['autoplay'] != null,
         looping: widget.context.tree.element?.attributes['loop'] != null,
-        showControls: widget.context.tree.element?.attributes['controls'] != null,
+        showControls:
+            widget.context.tree.element?.attributes['controls'] != null,
         autoInitialize: true,
       );
-      widget.callback?.call(widget.context.tree.element, chewieAudioController!, audioController!);
+      widget.callback?.call(widget.context.tree.element, chewieAudioController!,
+          audioController!);
     }
     super.initState();
   }
@@ -67,13 +79,13 @@ class _AudioWidgetState extends State<AudioWidget> {
   @override
   Widget build(BuildContext bContext) {
     if (sources.isEmpty || sources.first == null) {
-      return Container(height: 0, width: 0);
+      return const SizedBox(height: 0, width: 0);
     }
-    return Container(
+
+    return CssBoxWidget(
       key: widget.context.key,
-      width: widget.context.style.width ?? 300,
-      height: Theme.of(bContext).platform == TargetPlatform.android
-          ? 48 : 75,
+      style: widget.context.style,
+      childIsReplaced: true,
       child: ChewieAudio(
         controller: chewieAudioController!,
       ),

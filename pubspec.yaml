@@ -1,30 +1,38 @@
 name: flutter_html
 description: A Flutter widget rendering static HTML and CSS as Flutter widgets.
-version: 3.0.0-alpha.2
+version: 3.0.0-alpha.6
 homepage: https://github.com/Sub6Resources/flutter_html
 
 environment:
-  sdk: '>=2.12.0 <3.0.0'
-  flutter: '>=2.2.0'
+  sdk: ">=2.17.0 <3.0.0"
+  flutter: ">=2.2.0"
 
 dependencies:
   # Plugin for parsing html
-  html: '>=0.15.0 <1.0.0'
+  html: ">=0.15.0 <1.0.0"
 
   # Plugin for parsing css
-  csslib: '>=0.17.0 <1.0.0'
+  csslib: ">=0.17.0 <1.0.0"
 
   # Plugin for firstWhereOrNull extension on lists
-  collection: '>=1.15.0 <2.0.0'
+  collection: ">=1.15.0 <2.0.0"
 
-  # plugin to convert integers to numerals
-  numerus: '>=1.1.1 <2.0.0'
+  # plugin to manage lists and counting in a variety of styles
+  list_counter: ">=1.0.2 <2.0.0"
 
   flutter:
     sdk: flutter
 
+dependency_overrides:
+  csslib:
+    git:
+      url: https://github.com/ovenbits/csslib.git
+      ref: master
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_lints: ^2.0.1
+  meta: ^1.8.0
 
 flutter:

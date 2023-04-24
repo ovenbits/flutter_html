@@ -1,0 +1,13 @@
+{
+    "editor.wordWrapColumn": 80,
+    "dart.lineLength": 80, // This weird short line length is used to match source repository code formatting and prevent a lot of merge conflicts in future
+    "editor.rulers": [
+        80
+    ],
+    "git.mergeEditor": true,
+    "files.exclude": {
+        "**/.git": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+    }
+}

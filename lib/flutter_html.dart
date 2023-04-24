@@ -7,17 +7,18 @@ import 'package:flutter_html/src/html_elements.dart';
 import 'package:flutter_html/style.dart';
 import 'package:html/dom.dart' as dom;
 
-//export render context api
-export 'package:flutter_html/html_parser.dart';
-//export render context api
-export 'package:flutter_html/html_parser.dart';
 export 'package:flutter_html/custom_render.dart';
+//export render context api
+export 'package:flutter_html/html_parser.dart';
+
 //export src for advanced custom render uses (e.g. casting context.tree)
 export 'package:flutter_html/src/anchor.dart';
 export 'package:flutter_html/src/interactable_element.dart';
 export 'package:flutter_html/src/layout_element.dart';
 export 'package:flutter_html/src/replaced_element.dart';
 export 'package:flutter_html/src/styled_element.dart';
+//export css_box_widget for use in custom render.
+export 'package:flutter_html/src/css_box_widget.dart';
 //export style api
 export 'package:flutter_html/style.dart';
 
@@ -60,8 +61,12 @@ class Html extends StatefulWidget {
     this.onImageTap,
     this.tagsList = const [],
     this.style = const {},
-  }) : documentElement = null,
-        assert (data != null),
+    this.loadingPlaceholder,
+    this.onContentRendered,
+    this.textScaleFactor,
+    this.shouldSkipStyle,
+  })  : documentElement = null,
+        assert(data != null),
         _anchorKey = anchorKey ?? GlobalKey(),
         super(key: key);
 
@@ -78,9 +83,13 @@ class Html extends StatefulWidget {
     this.onImageTap,
     this.tagsList = const [],
     this.style = const {},
-  }) : data = null,
+    this.loadingPlaceholder,
+    this.onContentRendered,
+    this.textScaleFactor,
+    this.shouldSkipStyle,
+  })  : data = null,
         assert(document != null),
-        this.documentElement = document!.documentElement,
+        documentElement = document!.documentElement,
         _anchorKey = anchorKey ?? GlobalKey(),
         super(key: key);
 
@@ -97,7 +106,11 @@ class Html extends StatefulWidget {
     this.onImageTap,
     this.tagsList = const [],
     this.style = const {},
-  }) : data = null,
+    this.loadingPlaceholder,
+    this.onContentRendered,
+    this.textScaleFactor,
+    this.shouldSkipStyle,
+  })  : data = null,
         assert(documentElement != null),
         _anchorKey = anchorKey ?? GlobalKey(),
         super(key: key);
@@ -141,31 +154,51 @@ class Html extends StatefulWidget {
   /// An API that allows you to override the default style for any HTML element
   final Map<String, Style> style;
 
-  static List<String> get tags => new List<String>.from(STYLED_ELEMENTS)
-    ..addAll(INTERACTABLE_ELEMENTS)
-    ..addAll(REPLACED_ELEMENTS)
-    ..addAll(LAYOUT_ELEMENTS)
-    ..addAll(TABLE_CELL_ELEMENTS)
-    ..addAll(TABLE_DEFINITION_ELEMENTS)
-    ..addAll(EXTERNAL_ELEMENTS);
+  /// Could be used to control style assignment during parsing HTML tree
+  /// Note that this variable should be set with care, as skipping styles may result in unintended formatting or layout issues.
+  final SkipStyleFunction? shouldSkipStyle;
+
+  final Widget? loadingPlaceholder;
+  final OnContentRendered? onContentRendered;
+  final double? textScaleFactor;
+
+  static List<String> get tags => List<String>.from(HtmlElements.styledElements)
+    ..addAll(HtmlElements.interactableElements)
+    ..addAll(HtmlElements.replacedElements)
+    ..addAll(HtmlElements.layoutElements)
+    ..addAll(HtmlElements.tableCellElements)
+    ..addAll(HtmlElements.tableDefinitionElements)
+    ..addAll(HtmlElements.externalElements);
 
   @override
   State<StatefulWidget> createState() => _HtmlState();
 }
 
 class _HtmlState extends State<Html> {
-  late final dom.Element documentElement;
+  late dom.Element documentElement;
 
   @override
   void initState() {
     super.initState();
-    documentElement =
-    widget.data != null ? HtmlParser.parseHTML(widget.data!) : widget.documentElement!;
+    documentElement = widget.data != null
+        ? HtmlParser.parseHTML(widget.data!)
+        : widget.documentElement!;
+  }
+
+  @override
+  void didUpdateWidget(Html oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if ((widget.data != null && oldWidget.data != widget.data) ||
+        oldWidget.documentElement != widget.documentElement) {
+      documentElement = widget.data != null
+          ? HtmlParser.parseHTML(widget.data!)
+          : widget.documentElement!;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: widget.shrinkWrap ? null : MediaQuery.of(context).size.width,
       child: HtmlParser(
         key: widget._anchorKey,
@@ -180,8 +213,12 @@ class _HtmlState extends State<Html> {
         style: widget.style,
         customRenders: {}
           ..addAll(widget.customRenders)
-          ..addAll(defaultRenders),
+          ..addAll(generateDefaultRenders()),
         tagsList: widget.tagsList.isEmpty ? Html.tags : widget.tagsList,
+        loadingPlaceholder: widget.loadingPlaceholder,
+        onContentRendered: widget.onContentRendered,
+        textScaleFactor: widget.textScaleFactor,
+        shouldSkipStyle: widget.shouldSkipStyle,
       ),
     );
   }
@@ -232,7 +269,8 @@ class SelectableHtml extends StatefulWidget {
     this.tagsList = const [],
     this.selectionControls,
     this.scrollPhysics,
-  }) : documentElement = null,
+    this.shouldSkipStyle,
+  })  : documentElement = null,
         assert(data != null),
         _anchorKey = anchorKey ?? GlobalKey(),
         super(key: key);
@@ -250,9 +288,10 @@ class SelectableHtml extends StatefulWidget {
     this.tagsList = const [],
     this.selectionControls,
     this.scrollPhysics,
-  }) : data = null,
+    this.shouldSkipStyle,
+  })  : data = null,
         assert(document != null),
-        this.documentElement = document!.documentElement,
+        documentElement = document!.documentElement,
         _anchorKey = anchorKey ?? GlobalKey(),
         super(key: key);
 
@@ -269,7 +308,8 @@ class SelectableHtml extends StatefulWidget {
     this.tagsList = const [],
     this.selectionControls,
     this.scrollPhysics,
-  }) : data = null,
+    this.shouldSkipStyle,
+  })  : data = null,
         assert(documentElement != null),
         _anchorKey = anchorKey ?? GlobalKey(),
         super(key: key);
@@ -294,7 +334,9 @@ class SelectableHtml extends StatefulWidget {
   final OnCssParseError? onCssParseError;
 
   /// A parameter that should be set when the HTML widget is expected to be
-  /// flexible
+  /// have a flexible width, that doesn't always fill its maximum width
+  /// constraints. For example, auto horizontal margins are ignored, and
+  /// block-level elements only take up the width they need.
   final bool shrinkWrap;
 
   /// A list of HTML tags that are the only tags that are rendered. By default, this list is empty and all supported HTML tags are rendered.
@@ -314,7 +356,12 @@ class SelectableHtml extends StatefulWidget {
   /// fallback to the default rendering.
   final Map<CustomRenderMatcher, SelectableCustomRender> customRenders;
 
-  static List<String> get tags => new List<String>.from(SELECTABLE_ELEMENTS);
+  /// Could be used to control style assignment during parsing HTML tree
+  /// Note that this variable should be set with care, as skipping styles may result in unintended formatting or layout issues.
+  final SkipStyleFunction? shouldSkipStyle;
+
+  static List<String> get tags =>
+      List<String>.from(HtmlElements.selectableElements);
 
   @override
   State<StatefulWidget> createState() => _SelectableHtmlState();
@@ -326,12 +373,14 @@ class _SelectableHtmlState extends State<SelectableHtml> {
   @override
   void initState() {
     super.initState();
-    documentElement = widget.data != null ? HtmlParser.parseHTML(widget.data!) : widget.documentElement!;
+    documentElement = widget.data != null
+        ? HtmlParser.parseHTML(widget.data!)
+        : widget.documentElement!;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: widget.shrinkWrap ? null : MediaQuery.of(context).size.width,
       child: HtmlParser(
         key: widget._anchorKey,
@@ -346,10 +395,12 @@ class _SelectableHtmlState extends State<SelectableHtml> {
         style: widget.style,
         customRenders: {}
           ..addAll(widget.customRenders)
-          ..addAll(defaultRenders),
-        tagsList: widget.tagsList.isEmpty ? SelectableHtml.tags : widget.tagsList,
+          ..addAll(generateDefaultRenders()),
+        tagsList:
+            widget.tagsList.isEmpty ? SelectableHtml.tags : widget.tagsList,
         selectionControls: widget.selectionControls,
         scrollPhysics: widget.scrollPhysics,
+        shouldSkipStyle: widget.shouldSkipStyle,
       ),
     );
   }
