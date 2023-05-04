@@ -196,7 +196,6 @@ CustomRender replacedElementRender(
 CustomRender textContentElementRender({String? text}) =>
     CustomRender.inlineSpan(
         inlineSpan: (context, buildChildren) => TextSpan(
-              style: context.style.generateTextStyle(context.buildContext),
               text: (text ?? (context.tree as TextContentElement).text)
                   .transformed(context.tree.style.textTransform),
             ));
