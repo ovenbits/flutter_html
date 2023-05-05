@@ -2,6 +2,7 @@ name: flutter_html_svg
 description: This extension package allows the <svg> tag and svg-based img sources to be rendered using the flutter_html package
 version: 3.0.0-alpha.4
 homepage: https://github.com/Sub6Resources/flutter_html
+publish_to: none
 
 environment:
   sdk: ">=2.12.0 <3.0.0"

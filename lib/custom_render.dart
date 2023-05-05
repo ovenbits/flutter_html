@@ -118,6 +118,10 @@ CustomRender blockElementRender({Style? style, List<InlineSpan>? children}) =>
           children: (children as List<TextSpan>?) ??
               context.tree.children
                   .expandIndexed((i, childTree) => [
+                        if (childTree.style.display == Display.block &&
+                            i > 0 &&
+                            context.tree.children[i - 1] is ReplacedElement)
+                          const TextSpan(text: "\n"),
                         context.parser.parseTree(context, childTree),
                         if (i != context.tree.children.length - 1 &&
                             childTree.style.display == Display.block &&
@@ -141,9 +145,14 @@ CustomRender blockElementRender({Style? style, List<InlineSpan>? children}) =>
           children: children ??
               context.tree.children
                   .expandIndexed((i, childTree) => [
+                        if (context.parser.shrinkWrap &&
+                            childTree.style.display == Display.block &&
+                            i > 0 &&
+                            context.tree.children[i - 1] is ReplacedElement)
+                          const TextSpan(text: "\n"),
                         context.parser.parseTree(context, childTree),
-                        //TODO can this newline be added in a different step?
-                        if (i != context.tree.children.length - 1 &&
+                        if (context.parser.shrinkWrap &&
+                            i != context.tree.children.length - 1 &&
                             childTree.style.display == Display.block &&
                             childTree.element?.localName != "html" &&
                             childTree.element?.localName != "body")
@@ -187,7 +196,6 @@ CustomRender replacedElementRender(
 CustomRender textContentElementRender({String? text}) =>
     CustomRender.inlineSpan(
         inlineSpan: (context, buildChildren) => TextSpan(
-              style: context.style.generateTextStyle(context.buildContext),
               text: (text ?? (context.tree as TextContentElement).text)
                   .transformed(context.tree.style.textTransform),
             ));
